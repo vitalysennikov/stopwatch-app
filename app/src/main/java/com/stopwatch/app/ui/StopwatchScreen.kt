@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -16,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.stopwatch.app.BuildConfig
 import com.stopwatch.app.R
 import com.stopwatch.app.viewmodel.StopwatchViewModel
 
@@ -31,6 +33,7 @@ fun StopwatchScreen(
     val showMilliseconds by viewModel.showMilliseconds.collectAsState()
 
     val listState = rememberLazyListState()
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     // Update keep screen on state
     LaunchedEffect(isRunning) {
@@ -49,6 +52,12 @@ fun StopwatchScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = { showAboutDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "About"
+                        )
+                    }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(end = 8.dp)
@@ -171,6 +180,31 @@ fun StopwatchScreen(
                 }
             }
         }
+    }
+
+    // About Dialog
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = { Text("Stopwatch") },
+            text = {
+                Column {
+                    Text("Version: ${BuildConfig.VERSION_NAME}")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Build: ${BuildConfig.VERSION_CODE}")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Simple stopwatch with lap marks",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
 
