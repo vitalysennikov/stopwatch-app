@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Stopwatch</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="reset">Reset</string>
+    <string name="lap">Lap</string>
+    <string name="show_milliseconds">Show milliseconds</string>
+    <string name="lap_number">Lap %1$d</string>
+    <string name="lap_time">Time</string>
+    <string name="lap_duration">Duration</string>
+</resources>
