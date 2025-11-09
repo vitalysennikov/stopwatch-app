@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -133,10 +134,8 @@ fun StopwatchScreen(
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = stringResource(R.string.reset),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(32.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.reset))
                 }
 
                 // Start/Pause button
@@ -148,20 +147,12 @@ fun StopwatchScreen(
                         imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isRunning) {
                             stringResource(R.string.pause)
-                        } else {
-                            stringResource(R.string.start)
-                        },
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        if (isRunning) {
-                            stringResource(R.string.pause)
                         } else if (elapsedTime > 0L) {
                             stringResource(R.string.resume)
                         } else {
                             stringResource(R.string.start)
-                        }
+                        },
+                        modifier = Modifier.size(32.dp)
                     )
                 }
 
@@ -171,7 +162,11 @@ fun StopwatchScreen(
                     modifier = Modifier.weight(1f),
                     enabled = isRunning
                 ) {
-                    Text(stringResource(R.string.lap))
+                    Icon(
+                        imageVector = Icons.Outlined.Flag,
+                        contentDescription = stringResource(R.string.lap),
+                        modifier = Modifier.size(32.dp)
+                    )
                 }
             }
 
@@ -239,52 +234,35 @@ fun LapItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Lap number
         Text(
             text = stringResource(R.string.lap_number, lap.lapNumber),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
         )
 
-        Column(
-            horizontalAlignment = Alignment.End,
-            modifier = Modifier.weight(2f)
+        // Total time and lap duration in one row
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.lap_time),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = formatTime(lap.totalTime),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            // Total time
+            Text(
+                text = formatTime(lap.totalTime),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.lap_duration),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = formatTime(lap.lapDuration),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            // Lap duration
+            Text(
+                text = formatTime(lap.lapDuration),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
