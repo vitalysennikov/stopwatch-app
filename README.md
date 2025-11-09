@@ -89,8 +89,4 @@ laplog-app/
 
 ## License
 
-This project is created for educational purposes.
-
-## Author
-
-Created with Claude Code
+© 2025 Vitaly Sennikov. All rights reserved.
