@@ -1,69 +1,71 @@
-# LapLog Free - Бесплатный секундомер с историей
+# LapLog Free - Free Stopwatch with History
 
-Простое и функциональное приложение-секундомер для Android с сохранением истории запусков и современным Material Design 3 интерфейсом.
+[Русская версия](README.ru.md) | English
 
-## Возможности
+A simple and functional stopwatch application for Android with session history and modern Material Design 3 interface.
 
-- **Базовый функционал секундомера**: старт, пауза, сброс
-- **Промежуточные отметки (Lap marks)**: сохранение промежуточных времен с отображением общего времени и длительности каждого круга
-- **Переключение точности**: отображение времени с миллисекундами или только секундами
-- **Динамический формат**: автоматическое переключение между форматами ММ:СС и ЧЧ:ММ:СС при достижении одного часа
-- **Удержание экрана**: экран остается активным во время работы секундомера
-- **Темная тема**: автоматическое переключение по системным настройкам
-- **Material Design 3**: современный и интуитивный интерфейс
+## Features
 
-## Технологии
+- **Basic stopwatch functionality**: start, pause, reset
+- **Lap marks**: save intermediate times with total time and lap duration display
+- **Precision toggle**: display time with milliseconds or seconds only
+- **Dynamic format**: automatic switching between MM:SS and HH:MM:SS formats when reaching one hour
+- **Keep screen on**: screen stays active while stopwatch is running
+- **Dark theme**: automatic switching based on system settings
+- **Material Design 3**: modern and intuitive interface
+
+## Technologies
 
 - Kotlin
 - Jetpack Compose
 - Material Design 3
 - Android Architecture Components (ViewModel, StateFlow)
-- Минимальная версия Android: 7.0 (API 24)
-- Целевая версия: Android 14 (API 34)
+- Minimum Android version: 7.0 (API 24)
+- Target version: Android 14 (API 34)
 
-## Сборка проекта
+## Building the Project
 
-### Локальная сборка
+### Local Build
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
 ```bash
 git clone https://github.com/vitalysennikov/laplog-app.git
 cd laplog-app
 ```
 
-2. Соберите APK:
+2. Build APK:
 ```bash
 ./gradlew assembleRelease
 ```
 
-3. APK файл будет находиться в `app/build/outputs/apk/release/`
+3. APK file will be located in `app/build/outputs/apk/release/`
 
-### Сборка через GitHub Actions
+### Build via GitHub Actions
 
-Проект настроен для автоматической сборки через GitHub Actions:
+The project is configured for automatic builds via GitHub Actions:
 
-1. Сделайте push в ветку `main` или `master`
-2. GitHub Actions автоматически соберет APK
-3. Скачайте готовый APK из артефактов в разделе Actions
+1. Push to `main` or `master` branch
+2. GitHub Actions will automatically build the APK
+3. Download the ready APK from artifacts in the Actions section
 
-APK будет доступен в течение 30 дней после сборки.
+APK will be available for 30 days after build.
 
-## Установка
+## Installation
 
-1. Скачайте APK файл из раздела Releases или из артефактов GitHub Actions
-2. Разрешите установку приложений из неизвестных источников на вашем устройстве
-3. Откройте APK файл и следуйте инструкциям установки
+1. Download the APK file from Releases section or from GitHub Actions artifacts
+2. Allow installation of apps from unknown sources on your device
+3. Open the APK file and follow the installation instructions
 
-## Использование
+## Usage
 
-1. **Запуск секундомера**: нажмите кнопку "Start"
-2. **Пауза**: нажмите кнопку "Pause" во время работы
-3. **Продолжение**: нажмите "Resume" после паузы
-4. **Сброс**: нажмите кнопку "Reset"
-5. **Добавление круга**: нажмите кнопку "Lap" во время работы секундомера
-6. **Переключение точности**: используйте переключатель "Show milliseconds" в верхней части экрана
+1. **Start stopwatch**: press the "Start" button
+2. **Pause**: press the "Pause" button while running
+3. **Resume**: press "Resume" after pausing
+4. **Reset**: press the "Reset" button
+5. **Add lap**: press the "Lap" button while stopwatch is running
+6. **Toggle precision**: use the "Show milliseconds" switch at the top of the screen
 
-## Структура проекта
+## Project Structure
 
 ```
 laplog-app/
@@ -71,12 +73,12 @@ laplog-app/
 │   ├── src/
 │   │   └── main/
 │   │       ├── java/com/stopwatch/app/
-│   │       │   ├── model/          # Модели данных
-│   │       │   ├── ui/             # UI компоненты
-│   │       │   │   └── theme/      # Темы приложения
+│   │       │   ├── model/          # Data models
+│   │       │   ├── ui/             # UI components
+│   │       │   │   └── theme/      # App themes
 │   │       │   ├── viewmodel/      # ViewModels
 │   │       │   └── MainActivity.kt
-│   │       ├── res/                # Ресурсы
+│   │       ├── res/                # Resources
 │   │       └── AndroidManifest.xml
 │   └── build.gradle.kts
 ├── .github/
@@ -85,10 +87,10 @@ laplog-app/
 └── README.md
 ```
 
-## Лицензия
+## License
 
-Этот проект создан для образовательных целей.
+This project is created for educational purposes.
 
-## Автор
+## Author
 
-Создано с помощью Claude Code
+Created with Claude Code
