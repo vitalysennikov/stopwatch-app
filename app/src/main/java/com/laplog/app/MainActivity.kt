@@ -1,4 +1,4 @@
-package com.stopwatch.app
+package com.laplog.app
 
 import android.os.Bundle
 import android.view.WindowManager
@@ -8,12 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.stopwatch.app.ui.StopwatchScreen
-import com.stopwatch.app.ui.theme.StopwatchTheme
+import com.laplog.app.data.PreferencesManager
+import com.laplog.app.ui.StopwatchScreen
+import com.laplog.app.ui.theme.StopwatchTheme
 
 class MainActivity : ComponentActivity() {
+    private lateinit var preferencesManager: PreferencesManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        preferencesManager = PreferencesManager(applicationContext)
+
         setContent {
             StopwatchTheme {
                 Surface(
@@ -21,6 +26,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     StopwatchScreen(
+                        preferencesManager = preferencesManager,
                         onKeepScreenOn = { keepOn ->
                             if (keepOn) {
                                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

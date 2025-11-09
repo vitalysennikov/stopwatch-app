@@ -1,4 +1,4 @@
-package com.stopwatch.app.ui.theme
+package com.laplog.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

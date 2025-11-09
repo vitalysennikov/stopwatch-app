@@ -1,4 +1,4 @@
-package com.stopwatch.app.model
+package com.laplog.app.model
 
 data class LapTime(
     val lapNumber: Int,

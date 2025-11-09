@@ -1,8 +1,9 @@
-package com.stopwatch.app.viewmodel
+package com.laplog.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.stopwatch.app.model.LapTime
+import com.laplog.app.data.PreferencesManager
+import com.laplog.app.model.LapTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class StopwatchViewModel : ViewModel() {
+class StopwatchViewModel(
+    private val preferencesManager: PreferencesManager
+) : ViewModel() {
     private val _elapsedTime = MutableStateFlow(0L)
     val elapsedTime: StateFlow<Long> = _elapsedTime.asStateFlow()
 
@@ -20,8 +23,11 @@ class StopwatchViewModel : ViewModel() {
     private val _laps = MutableStateFlow<List<LapTime>>(emptyList())
     val laps: StateFlow<List<LapTime>> = _laps.asStateFlow()
 
-    private val _showMilliseconds = MutableStateFlow(true)
+    private val _showMilliseconds = MutableStateFlow(preferencesManager.showMilliseconds)
     val showMilliseconds: StateFlow<Boolean> = _showMilliseconds.asStateFlow()
+
+    private val _keepScreenOn = MutableStateFlow(preferencesManager.keepScreenOn)
+    val keepScreenOn: StateFlow<Boolean> = _keepScreenOn.asStateFlow()
 
     private var timerJob: Job? = null
     private var startTime = 0L
@@ -80,6 +86,12 @@ class StopwatchViewModel : ViewModel() {
 
     fun toggleMillisecondsDisplay() {
         _showMilliseconds.value = !_showMilliseconds.value
+        preferencesManager.showMilliseconds = _showMilliseconds.value
+    }
+
+    fun toggleKeepScreenOn() {
+        _keepScreenOn.value = !_keepScreenOn.value
+        preferencesManager.keepScreenOn = _keepScreenOn.value
     }
 
     fun formatTime(timeInMillis: Long, includeMillis: Boolean = _showMilliseconds.value): String {

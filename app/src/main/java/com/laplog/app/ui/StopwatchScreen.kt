@@ -1,4 +1,4 @@
-package com.stopwatch.app.ui
+package com.laplog.app.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,27 +17,34 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.stopwatch.app.BuildConfig
-import com.stopwatch.app.R
-import com.stopwatch.app.viewmodel.StopwatchViewModel
+import com.laplog.app.BuildConfig
+import com.laplog.app.R
+import com.laplog.app.data.PreferencesManager
+import com.laplog.app.viewmodel.StopwatchViewModel
+import com.laplog.app.viewmodel.StopwatchViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StopwatchScreen(
-    viewModel: StopwatchViewModel = viewModel(),
+    preferencesManager: PreferencesManager,
     onKeepScreenOn: (Boolean) -> Unit
 ) {
+    val viewModel: StopwatchViewModel = viewModel(
+        factory = StopwatchViewModelFactory(preferencesManager)
+    )
+
     val elapsedTime by viewModel.elapsedTime.collectAsState()
     val isRunning by viewModel.isRunning.collectAsState()
     val laps by viewModel.laps.collectAsState()
     val showMilliseconds by viewModel.showMilliseconds.collectAsState()
+    val keepScreenOn by viewModel.keepScreenOn.collectAsState()
 
     val listState = rememberLazyListState()
     var showAboutDialog by remember { mutableStateOf(false) }
 
     // Update keep screen on state
-    LaunchedEffect(isRunning) {
-        onKeepScreenOn(isRunning)
+    LaunchedEffect(isRunning, keepScreenOn) {
+        onKeepScreenOn(isRunning && keepScreenOn)
     }
 
     // Auto-scroll to latest lap
@@ -58,19 +65,35 @@ fun StopwatchScreen(
                             contentDescription = "About"
                         )
                     }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Column(
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        Text(
-                            text = stringResource(R.string.show_milliseconds),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Switch(
-                            checked = showMilliseconds,
-                            onCheckedChange = { viewModel.toggleMillisecondsDisplay() }
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.show_milliseconds),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                            Switch(
+                                checked = showMilliseconds,
+                                onCheckedChange = { viewModel.toggleMillisecondsDisplay() }
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.keep_screen_on),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                            Switch(
+                                checked = keepScreenOn,
+                                onCheckedChange = { viewModel.toggleKeepScreenOn() }
+                            )
+                        }
                     }
                 }
             )
@@ -210,7 +233,7 @@ fun StopwatchScreen(
 
 @Composable
 fun LapItem(
-    lap: com.stopwatch.app.model.LapTime,
+    lap: com.laplog.app.model.LapTime,
     formatTime: (Long) -> String
 ) {
     Row(

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.stopwatch.app"
+    namespace = "com.laplog.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.stopwatch.app"
+        applicationId = "com.laplog.app"
         minSdk = 24
         targetSdk = 34
         versionCode = 2

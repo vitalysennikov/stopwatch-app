@@ -1,4 +1,4 @@
-package com.stopwatch.app.ui.theme
+package com.laplog.app.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
