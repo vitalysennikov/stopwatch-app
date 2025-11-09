@@ -107,7 +107,7 @@ fun HistoryScreen(
                         totalSessionCount = sessions.size,
                         sessionIndex = sessions.indexOf(sessionWithLaps)
                     )
-                    HorizontalDivider()
+                    Divider()
                 }
             }
         }
@@ -173,6 +173,7 @@ fun HistoryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionItem(
     sessionWithLaps: SessionWithLaps,
@@ -220,7 +221,7 @@ fun SessionItem(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = stringResource(R.string.session_duration, formatTime(session.totalDuration)),
+                        text = stringResource(R.string.session_duration, formatTime(session.totalDuration, false)),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (laps.isNotEmpty()) {
@@ -284,7 +285,7 @@ fun SessionItem(
             // Expanded content with laps
             if (expanded && laps.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
+                Divider()
                 Spacer(modifier = Modifier.height(8.dp))
 
                 laps.forEach { lap ->
@@ -300,11 +301,11 @@ fun SessionItem(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text(
-                                text = formatTime(lap.totalTime),
+                                text = formatTime(lap.totalTime, false),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = formatTime(lap.lapDuration),
+                                text = formatTime(lap.lapDuration, false),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
