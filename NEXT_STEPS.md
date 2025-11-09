@@ -5,10 +5,10 @@
 ## 1. Инициализация Git репозитория
 
 ```bash
-cd "/home/cvt/MEGA/MEGA VS/stopwatch-app"
+cd laplog-app
 git init
 git add .
-git commit -m "Initial commit: Stopwatch app with all features"
+git commit -m "Initial commit: LapLog Free app with all features"
 ```
 
 ## 2. Создание GitHub репозитория

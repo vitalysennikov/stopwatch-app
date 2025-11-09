@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Stopwatch"
+rootProject.name = "LapLog"
 include(":app")
