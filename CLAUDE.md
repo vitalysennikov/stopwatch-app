@@ -5,10 +5,11 @@
 **LapLog Free** is an Android stopwatch application with lap tracking and session history features. The name reflects two key features: **Lap** marks and **Log** (history) of sessions.
 
 - **Package**: `com.laplog.app`
-- **Current Version**: 0.1.1 (versionCode 2)
-- **Target Version**: 0.2.0 (in development)
+- **Current Version**: 0.2.0 (versionCode 3) - ALMOST COMPLETE
+- **Target Version**: 0.3.0 (future enhancements)
 - **Min SDK**: 24 (Android 7.0)
 - **Target SDK**: 34 (Android 14)
+- **Latest Build**: GitHub Actions builds APK on every push to main
 
 ## Architecture
 
@@ -58,17 +59,25 @@ com.laplog.app/
 ## Key Features (Implemented)
 
 ### Stage 1: Settings Persistence ✅
-- **Show/Hide Milliseconds**: Toggle between `MM:SS.mm` and `MM:SS` display formats
-- **Keep Screen On**: Keep device screen active during stopwatch operation
-- **SharedPreferences**: Persistent storage via `PreferencesManager`
+- **Show/Hide Milliseconds**: IconToggleButton with AccessTime icon + "ms" label
+- **Keep Screen On**: IconToggleButton with Smartphone icon + "Screen" label
+- **Lock Orientation**: IconToggleButton with Lock icon + "Lock" label (NEW in 0.2.0)
+- **SharedPreferences**: All settings persist via `PreferencesManager`
+- **Location**: Horizontal row of icon toggles below control buttons
 
 ### Stage 2: UI Improvements ✅
 - **Icon-Only Buttons**: 32dp icons without text labels
   - Reset: `Icons.Default.Refresh`
   - Start/Pause: `Icons.Default.PlayArrow` / `Icons.Default.Pause`
   - Lap: `Icons.Outlined.Flag`
+- **Monospace Font**: FontFamily.Monospace for all time displays
+  - Main timer: 56sp, bold
+  - Lap times: bodyMedium with monospace
+  - Prevents numbers from "jumping" when changing
 - **Compact Lap Display**: Single-row layout with reduced padding
 - **Adaptive Time Format**: Shows hours only when ≥1 hour elapsed
+- **No TopAppBar**: Removed large "LapLog Free" title
+- **Small App Name**: Added at bottom above navigation bar (labelSmall style)
 
 ### Stage 3: Room Database ✅
 - **SessionEntity**: Stores session metadata (startTime, endTime, totalDuration, comment)
@@ -99,6 +108,8 @@ com.laplog.app/
 - **Session Cards**: Expandable cards showing session details and laps
 - **Date Formatting**: Human-readable dates and times
 - **Material Design 3**: Consistent theming across all screens
+- **Icon Toggles**: Horizontal row with filled/outlined icons and small labels
+- **App Name**: Small centered label above navigation bar
 
 ## Database Schema
 
@@ -130,15 +141,24 @@ CREATE INDEX index_laps_sessionId ON laps(sessionId);
 
 See `task_2.md` for detailed requirements.
 
-### Version 0.2.0 (In Progress)
-- ✅ Stage 1: Settings persistence with SharedPreferences
-- ✅ Stage 2: UI improvements (icon buttons, compact laps)
+### Version 0.2.0 (ALMOST COMPLETE)
+- ✅ Stage 1: Settings persistence + orientation lock
+- ✅ Stage 2: UI improvements + monospace font
 - ✅ Stage 3: Room Database for session history
-- ✅ Stage 4: Add comments to sessions with autocomplete
-- ✅ Stage 5: Delete functions (selected session, sessions before date, all sessions)
-- ✅ Stage 6: Export history to file (CSV or JSON format)
+- ✅ Stage 4: Comments with autocomplete
+- ✅ Stage 5: Delete functions (3 variants)
+- ✅ Stage 6: CSV/JSON export
 - ✅ Stage 7: UI polish and navigation
-- ⏳ Stage 8: Prepare for Google Play publication
+- ⏳ Stage 8: Google Play preparation
+
+### Known Issues (v0.2.0)
+- ❗ **Session saving not working**: Sessions don't appear in History after Reset
+  - Logic exists in StopwatchViewModel.reset() -> saveSession()
+  - Needs investigation: database permissions or Flow collection issue?
+- 🔧 **UI Polish Needed**:
+  - Remove text labels from icon toggles (keep icons only)
+  - Move toggles above timer display
+  - Use angular/digital-clock style font instead of rounded monospace
 
 ## Code Conventions
 
@@ -185,9 +205,44 @@ See `task_2.md` for detailed requirements.
 
 ### CI/CD Pipeline
 - GitHub Actions workflow: `.github/workflows/android.yml`
-- Triggers on push to `main` and `dev` branches
+- Triggers on push to `main` branch only
 - Builds debug APK and uploads as artifact
 - APK download available in Actions tab
+- Recent build: Successful with icon fixes
+
+## Important Implementation Details
+
+### Session Saving Logic
+**Location**: `StopwatchViewModel.kt:74-118`
+
+Sessions save when Reset button is pressed IF:
+- `elapsedTime > 0` OR
+- `laps.isNotEmpty()`
+
+Flow:
+1. User presses Reset
+2. Stopwatch stops
+3. `saveSession()` called asynchronously
+4. SessionEntity created with startTime, endTime, totalDuration
+5. Insert to database via `sessionDao.insertSession()`
+6. If laps exist, insert via `sessionDao.insertLaps()`
+7. Values reset to 0 after save completes
+
+**Issue**: Currently not working - sessions don't appear in History tab
+
+### Icon Toggle Implementation
+**Location**: `StopwatchScreen.kt:136-202`
+
+Three toggles in horizontal row:
+- **Milliseconds**: AccessTime (filled/outlined)
+- **Screen**: Smartphone (filled/outlined)
+- **Orientation**: Lock/LockOpen (filled/outlined)
+
+Each has small text label below icon (needs removal)
+
+### Monospace Font
+**Current**: `FontFamily.Monospace` (rounded)
+**Desired**: Angular/digital clock style (segmented display look)
 
 ## License
 
