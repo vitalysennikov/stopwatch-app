@@ -117,4 +117,17 @@ class HistoryViewModel(
             }
         }
     }
+
+    fun formatDifference(diffMillis: Long, includeMillis: Boolean = true): String {
+        val sign = if (diffMillis >= 0) "+" else "-"
+        val absDiff = kotlin.math.abs(diffMillis)
+        val seconds = (absDiff / 1000).toInt()
+        val millis = ((absDiff % 1000) / 10).toInt()
+
+        return if (includeMillis) {
+            String.format("%s%d.%02d", sign, seconds, millis)
+        } else {
+            String.format("%s%d", sign, seconds)
+        }
+    }
 }

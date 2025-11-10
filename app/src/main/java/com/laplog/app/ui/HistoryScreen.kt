@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,6 +37,12 @@ fun HistoryScreen(
 ) {
     val viewModel: HistoryViewModel = viewModel(
         factory = HistoryViewModelFactory(preferencesManager, sessionDao)
+    )
+
+    // Digital clock style font
+    val dseg7Font = FontFamily(
+        Font(R.font.dseg7_classic_regular, FontWeight.Normal),
+        Font(R.font.dseg7_classic_bold, FontWeight.Bold)
     )
 
     val sessions by viewModel.sessions.collectAsState()
@@ -116,7 +124,9 @@ fun HistoryScreen(
                         },
                         onDelete = { viewModel.deleteSession(sessionWithLaps.session) },
                         onDeleteBefore = { viewModel.deleteSessionsBefore(sessionWithLaps.session.startTime) },
-                        formatTime = viewModel::formatTime,
+                        formatTime = { time -> viewModel.formatTime(time, true) }, // Show milliseconds in history
+                        formatDifference = { diff -> viewModel.formatDifference(diff, true) },
+                        fontFamily = dseg7Font,
                         totalSessionCount = sessions.size,
                         sessionIndex = sessions.indexOf(sessionWithLaps),
                         expandAll = expandAll
@@ -268,7 +278,9 @@ fun SessionItem(
     onUpdateComment: (String) -> Unit,
     onDelete: () -> Unit,
     onDeleteBefore: () -> Unit,
-    formatTime: (Long, Boolean) -> String,
+    formatTime: (Long) -> String,
+    formatDifference: (Long) -> String,
+    fontFamily: FontFamily,
     totalSessionCount: Int,
     sessionIndex: Int,
     expandAll: Boolean
@@ -322,8 +334,9 @@ fun SessionItem(
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = stringResource(R.string.session_duration, formatTime(session.totalDuration, false)),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = stringResource(R.string.session_duration, formatTime(session.totalDuration)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = fontFamily
                     )
                     if (laps.isNotEmpty()) {
                         Text(
@@ -410,8 +423,9 @@ fun SessionItem(
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                                 Text(
-                                    text = formatTime(avgDuration, false),
+                                    text = formatTime(avgDuration),
                                     style = MaterialTheme.typography.bodyMedium,
+                                    fontFamily = fontFamily,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
@@ -423,8 +437,9 @@ fun SessionItem(
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                                 Text(
-                                    text = formatTime(medianDuration, false),
+                                    text = formatTime(medianDuration),
                                     style = MaterialTheme.typography.bodyMedium,
+                                    fontFamily = fontFamily,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
@@ -456,29 +471,33 @@ fun SessionItem(
                         )
 
                         // Lap duration (center, larger) with difference indicator
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Text(
+                                text = formatTime(lap.lapDuration),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontFamily = fontFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            // Difference from previous lap - next to duration
+                            // Always reserve space (72.dp) to align all laps consistently
+                            Box(
+                                modifier = Modifier.width(72.dp),
+                                contentAlignment = Alignment.CenterStart
                             ) {
-                                Text(
-                                    text = formatTime(lap.lapDuration, false),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                // Difference from previous lap - next to duration
                                 if (difference != null) {
-                                    val diffSeconds = difference / 1000.0
-                                    val sign = if (diffSeconds > 0) "+" else ""
                                     Text(
-                                        text = "$sign%.1f s".format(diffSeconds),
+                                        text = formatDifference(difference),
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = if (diffSeconds < 0) Color(0xFF4CAF50) // Green for faster laps
-                                               else MaterialTheme.colorScheme.error // Red for slower laps
+                                        fontFamily = fontFamily,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (difference < 0) Color(0xFF4CAF50) // Green for faster laps
+                                               else MaterialTheme.colorScheme.error, // Red for slower laps
+                                        modifier = Modifier.padding(start = 8.dp)
                                     )
                                 }
                             }
@@ -486,8 +505,9 @@ fun SessionItem(
 
                         // Total time (right)
                         Text(
-                            text = formatTime(lap.totalTime, false),
+                            text = formatTime(lap.totalTime),
                             style = MaterialTheme.typography.bodyMedium,
+                            fontFamily = fontFamily,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.width(80.dp),
                             textAlign = androidx.compose.ui.text.style.TextAlign.End

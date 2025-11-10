@@ -284,6 +284,9 @@ fun StopwatchScreen(
                             formatTime = { time ->
                                 viewModel.formatTime(time, showMilliseconds)
                             },
+                            formatDifference = { diff ->
+                                viewModel.formatDifference(diff, showMilliseconds)
+                            },
                             fontFamily = dseg7Font,
                             allLaps = laps
                         )
@@ -301,6 +304,7 @@ fun StopwatchScreen(
 fun LapItem(
     lap: com.laplog.app.model.LapTime,
     formatTime: (Long) -> String,
+    formatDifference: (Long) -> String,
     fontFamily: FontFamily,
     allLaps: List<com.laplog.app.model.LapTime>
 ) {
@@ -326,30 +330,33 @@ fun LapItem(
         )
 
         // Lap duration (center, larger) with difference indicator
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Text(
+                text = formatTime(lap.lapDuration),
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = fontFamily,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            // Difference from previous lap - next to duration
+            // Always reserve space (72.dp) to align all laps consistently
+            Box(
+                modifier = Modifier.width(72.dp),
+                contentAlignment = Alignment.CenterStart
             ) {
-                Text(
-                    text = formatTime(lap.lapDuration),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                // Difference from previous lap - next to duration
                 if (difference != null) {
-                    val diffSeconds = difference / 1000.0
-                    val sign = if (diffSeconds > 0) "+" else ""
                     Text(
-                        text = "$sign%.1f s".format(diffSeconds),
+                        text = formatDifference(difference),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (diffSeconds < 0) Color(0xFF4CAF50) // Green for faster laps
-                               else MaterialTheme.colorScheme.error // Red for slower laps
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Medium,
+                        color = if (difference < 0) Color(0xFF4CAF50) // Green for faster laps
+                               else MaterialTheme.colorScheme.error, // Red for slower laps
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             }
