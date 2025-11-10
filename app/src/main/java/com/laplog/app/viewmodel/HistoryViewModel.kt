@@ -10,6 +10,7 @@ import com.laplog.app.model.SessionWithLaps
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class HistoryViewModel(
@@ -36,14 +37,9 @@ class HistoryViewModel(
 
                 for (session in sessionEntities) {
                     Log.d("HistoryViewModel", "Session ID: ${session.id}, StartTime: ${session.startTime}, Duration: ${session.totalDuration}")
-                    // Get first emission from laps flow
-                    var laps = emptyList<com.laplog.app.data.database.entity.LapEntity>()
-                    sessionDao.getLapsForSession(session.id).collect { lapList ->
-                        laps = lapList
-                        Log.d("HistoryViewModel", "Session ${session.id} has ${laps.size} laps")
-                        // Take only first emission and break
-                        return@collect
-                    }
+                    // Get first emission from laps flow using first()
+                    val laps = sessionDao.getLapsForSession(session.id).first()
+                    Log.d("HistoryViewModel", "Session ${session.id} has ${laps.size} laps")
                     sessionsWithLaps.add(SessionWithLaps(session, laps))
                 }
 
