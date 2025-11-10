@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -126,54 +127,87 @@ fun StopwatchScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Control buttons
+        // Control buttons - dynamic layout based on state
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Reset button
-            FilledTonalButton(
-                onClick = { viewModel.reset() },
-                modifier = Modifier.weight(1f),
-                enabled = elapsedTime > 0L || isRunning
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = stringResource(R.string.reset),
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+            when {
+                // Stopped (time=0): only [Start] button
+                elapsedTime == 0L && !isRunning -> {
+                    Button(
+                        onClick = { viewModel.startOrPause() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = stringResource(R.string.start),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
 
-            // Start/Pause button
-            Button(
-                onClick = { viewModel.startOrPause() },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isRunning) {
-                        stringResource(R.string.pause)
-                    } else if (elapsedTime > 0L) {
-                        stringResource(R.string.resume)
-                    } else {
-                        stringResource(R.string.start)
-                    },
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+                // Running: [Pause] [Filled Flag (Lap+Pause)] [Empty Flag (Lap)]
+                isRunning -> {
+                    FilledTonalButton(
+                        onClick = { viewModel.startOrPause() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Pause,
+                            contentDescription = stringResource(R.string.pause),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
 
-            // Lap button
-            FilledTonalButton(
-                onClick = { viewModel.addLap() },
-                modifier = Modifier.weight(1f),
-                enabled = isRunning
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Flag,
-                    contentDescription = stringResource(R.string.lap),
-                    modifier = Modifier.size(32.dp)
-                )
+                    Button(
+                        onClick = { viewModel.addLapAndPause() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Flag,
+                            contentDescription = "Lap + Pause",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    FilledTonalButton(
+                        onClick = { viewModel.addLap() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Flag,
+                            contentDescription = stringResource(R.string.lap),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                // Paused (time>0): [Start] [Stop]
+                else -> {
+                    Button(
+                        onClick = { viewModel.startOrPause() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = stringResource(R.string.start),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    FilledTonalButton(
+                        onClick = { viewModel.reset() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = "Stop",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -291,28 +325,33 @@ fun LapItem(
             modifier = Modifier.width(60.dp)
         )
 
-        // Lap duration (center, larger)
+        // Lap duration (center, larger) with difference indicator
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
         ) {
-            Text(
-                text = formatTime(lap.lapDuration),
-                style = MaterialTheme.typography.titleMedium,
-                fontFamily = fontFamily,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            // Difference from previous lap
-            if (difference != null) {
-                val diffSeconds = difference / 1000.0
-                val sign = if (diffSeconds > 0) "+" else ""
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = "$sign%.1f s".format(diffSeconds),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (diffSeconds < 0) MaterialTheme.colorScheme.tertiary
-                           else MaterialTheme.colorScheme.error
+                    text = formatTime(lap.lapDuration),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
+                // Difference from previous lap - next to duration
+                if (difference != null) {
+                    val diffSeconds = difference / 1000.0
+                    val sign = if (diffSeconds > 0) "+" else ""
+                    Text(
+                        text = "$sign%.1f s".format(diffSeconds),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (diffSeconds < 0) Color(0xFF4CAF50) // Green for faster laps
+                               else MaterialTheme.colorScheme.error // Red for slower laps
+                    )
+                }
             }
         }
 

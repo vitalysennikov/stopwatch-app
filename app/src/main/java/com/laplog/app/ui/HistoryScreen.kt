@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ fun HistoryScreen(
 
     val sessions by viewModel.sessions.collectAsState()
     val usedComments by viewModel.usedComments.collectAsState()
+    val expandAll by viewModel.expandAll.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -49,6 +51,13 @@ fun HistoryScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.history)) },
                 actions = {
+                    // Expand/Collapse all toggle
+                    IconButton(onClick = { viewModel.toggleExpandAll() }) {
+                        Icon(
+                            imageVector = if (expandAll) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore,
+                            contentDescription = if (expandAll) "Collapse All" else "Expand All"
+                        )
+                    }
                     IconButton(onClick = { showAboutDialog = true }) {
                         Icon(Icons.Default.Info, contentDescription = "About")
                     }
@@ -109,7 +118,8 @@ fun HistoryScreen(
                         onDeleteBefore = { viewModel.deleteSessionsBefore(sessionWithLaps.session.startTime) },
                         formatTime = viewModel::formatTime,
                         totalSessionCount = sessions.size,
-                        sessionIndex = sessions.indexOf(sessionWithLaps)
+                        sessionIndex = sessions.indexOf(sessionWithLaps),
+                        expandAll = expandAll
                     )
                     Divider()
                 }
@@ -260,9 +270,15 @@ fun SessionItem(
     onDeleteBefore: () -> Unit,
     formatTime: (Long, Boolean) -> String,
     totalSessionCount: Int,
-    sessionIndex: Int
+    sessionIndex: Int,
+    expandAll: Boolean
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(expandAll) }
+
+    // Sync with global expandAll state
+    LaunchedEffect(expandAll) {
+        expanded = expandAll
+    }
     var showCommentDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteBeforeDialog by remember { mutableStateOf(false) }
@@ -271,7 +287,7 @@ fun SessionItem(
     val session = sessionWithLaps.session
     val laps = sessionWithLaps.laps
 
-    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()) }
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault()) }
     val dateStr = dateFormat.format(Date(session.startTime))
 
     Card(
@@ -296,6 +312,14 @@ fun SessionItem(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
+                    if (!session.comment.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = session.comment,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(R.string.session_duration, formatTime(session.totalDuration, false)),
@@ -306,14 +330,6 @@ fun SessionItem(
                             text = stringResource(R.string.session_laps, laps.size),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    if (!session.comment.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = session.comment,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -365,28 +381,117 @@ fun SessionItem(
                 Divider()
                 Spacer(modifier = Modifier.height(8.dp))
 
-                laps.forEach { lap ->
+                // Show statistics if there are at least 2 laps
+                if (laps.size >= 2) {
+                    val lapDurations = laps.map { it.lapDuration }
+                    val avgDuration = lapDurations.average().toLong()
+                    val minDuration = lapDurations.minOrNull() ?: 0L
+                    val maxDuration = lapDurations.maxOrNull() ?: 0L
+                    val medianDuration = (minDuration + maxDuration) / 2
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "AVG",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                Text(
+                                    text = formatTime(avgDuration, false),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "MEDIAN",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                Text(
+                                    text = formatTime(medianDuration, false),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
+                laps.forEachIndexed { index, lap ->
+                    // Calculate difference from previous lap
+                    val previousLap = if (index > 0) laps[index - 1] else null
+                    val difference = if (previousLap != null) {
+                        lap.lapDuration - previousLap.lapDuration
+                    } else null
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Lap number (left)
                         Text(
                             text = stringResource(R.string.lap_number, lap.lapNumber),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.width(60.dp)
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text(
-                                text = formatTime(lap.totalTime, false),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = formatTime(lap.lapDuration, false),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+
+                        // Lap duration (center, larger) with difference indicator
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = formatTime(lap.lapDuration, false),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                // Difference from previous lap - next to duration
+                                if (difference != null) {
+                                    val diffSeconds = difference / 1000.0
+                                    val sign = if (diffSeconds > 0) "+" else ""
+                                    Text(
+                                        text = "$sign%.1f s".format(diffSeconds),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (diffSeconds < 0) Color(0xFF4CAF50) // Green for faster laps
+                                               else MaterialTheme.colorScheme.error // Red for slower laps
+                                    )
+                                }
+                            }
                         }
+
+                        // Total time (right)
+                        Text(
+                            text = formatTime(lap.totalTime, false),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.width(80.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
                     }
                 }
             }

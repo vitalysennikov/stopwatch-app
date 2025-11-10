@@ -147,6 +147,13 @@ class StopwatchViewModel(
         _laps.value = _laps.value + newLap
     }
 
+    fun addLapAndPause() {
+        addLap()
+        if (_isRunning.value) {
+            pause()
+        }
+    }
+
     fun toggleMillisecondsDisplay() {
         _showMilliseconds.value = !_showMilliseconds.value
         preferencesManager.showMilliseconds = _showMilliseconds.value

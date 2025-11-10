@@ -24,6 +24,9 @@ class HistoryViewModel(
     private val _usedComments = MutableStateFlow<Set<String>>(emptySet())
     val usedComments: StateFlow<Set<String>> = _usedComments.asStateFlow()
 
+    private val _expandAll = MutableStateFlow(true) // default: all expanded
+    val expandAll: StateFlow<Boolean> = _expandAll.asStateFlow()
+
     init {
         loadSessions()
         loadUsedComments()
@@ -88,6 +91,10 @@ class HistoryViewModel(
             sessionDao.deleteAllSessions()
             loadSessions()
         }
+    }
+
+    fun toggleExpandAll() {
+        _expandAll.value = !_expandAll.value
     }
 
     fun formatTime(timeInMillis: Long, includeMillis: Boolean = false): String {

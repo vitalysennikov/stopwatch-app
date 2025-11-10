@@ -5,8 +5,8 @@
 **LapLog Free** is an Android stopwatch application with lap tracking and session history features. The name reflects two key features: **Lap** marks and **Log** (history) of sessions.
 
 - **Package**: `com.laplog.app`
-- **Current Version**: 0.2.0 (versionCode 3) - ALMOST COMPLETE
-- **Target Version**: 0.3.0 (future enhancements)
+- **Current Version**: 0.3.0 (versionCode 4) - IN DEVELOPMENT
+- **Stable Version**: 0.2.0 (tagged)
 - **Min SDK**: 24 (Android 7.0)
 - **Target SDK**: 34 (Android 14)
 - **Latest Build**: GitHub Actions builds APK on every push to main
@@ -141,7 +141,7 @@ CREATE INDEX index_laps_sessionId ON laps(sessionId);
 
 See `task_2.md` for detailed requirements.
 
-### Version 0.2.0 (ALMOST COMPLETE)
+### Version 0.2.0 (COMPLETED - tagged v0.2.0)
 - ✅ Stage 1: Settings persistence + orientation lock
 - ✅ Stage 2: UI improvements + monospace font
 - ✅ Stage 3: Room Database for session history
@@ -149,16 +149,25 @@ See `task_2.md` for detailed requirements.
 - ✅ Stage 5: Delete functions (3 variants)
 - ✅ Stage 6: CSV/JSON export
 - ✅ Stage 7: UI polish and navigation
-- ⏳ Stage 8: Google Play preparation
+- ✅ Bug fix: Session saving to history (Flow.first)
 
-### Known Issues (v0.2.0)
-- ❗ **Session saving not working**: Sessions don't appear in History after Reset
-  - Logic exists in StopwatchViewModel.reset() -> saveSession()
-  - Needs investigation: database permissions or Flow collection issue?
-- 🔧 **UI Polish Needed**:
-  - Remove text labels from icon toggles (keep icons only)
-  - Move toggles above timer display
-  - Use angular/digital-clock style font instead of rounded monospace
+### Version 0.3.0 (IN DEVELOPMENT - dev branch)
+- ✅ DSEG7 digital clock font (angular/segmented display style)
+- ✅ Lap statistics: AVG/MEDIAN on stopwatch and history
+- ✅ Enhanced lap display: +/-N.N s difference indicators
+  - Green for faster laps (negative difference)
+  - Red for slower laps (positive difference)
+- ✅ Redesigned control buttons (state-based):
+  - Stopped: [Start] only
+  - Running: [Pause] [Filled Flag (Lap+Pause)] [Empty Flag (Lap)]
+  - Paused: [Start] [Stop]
+- ✅ Collapse/Expand All toggle in History
+- ✅ Comment moved to session header (next to date)
+- ✅ Seconds added to session timestamps
+- ✅ Fixed session saving bug (Flow.collect → Flow.first)
+
+### Known Issues
+- None currently
 
 ## Code Conventions
 
@@ -203,15 +212,17 @@ See `task_2.md` for detailed requirements.
 ## Build & Deployment
 
 ### Local Development
-- Android SDK not installed locally
-- All builds performed via GitHub Actions
+- ⚠️ **NO LOCAL BUILDS**: Android SDK not installed locally
+- ✅ **Use GitHub Actions only**: All builds performed via CI/CD pipeline
+- 🚫 **Do NOT run**: `./gradlew assembleDebug` or any gradle commands locally
+- 📦 **APK Location**: Download from GitHub Actions artifacts
 
 ### CI/CD Pipeline
 - GitHub Actions workflow: `.github/workflows/android.yml`
 - Triggers on push to `main` branch only
 - Builds debug APK and uploads as artifact
 - APK download available in Actions tab
-- Recent build: Successful with icon fixes
+- Testing: Install APK on device via `adb install app-debug.apk`
 
 ## Important Implementation Details
 
