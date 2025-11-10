@@ -1,5 +1,6 @@
 package com.laplog.app.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.laplog.app.data.PreferencesManager
@@ -75,10 +76,18 @@ class StopwatchViewModel(
         _isRunning.value = false
         timerJob?.cancel()
 
+        Log.d("StopwatchViewModel", "Reset called. ElapsedTime: ${_elapsedTime.value}, Laps: ${_laps.value.size}, SessionStartTime: $sessionStartTime")
+
         // Save session to database if there was any activity
         if (_elapsedTime.value > 0L || _laps.value.isNotEmpty()) {
+            Log.d("StopwatchViewModel", "Saving session...")
             viewModelScope.launch {
-                saveSession()
+                try {
+                    saveSession()
+                    Log.d("StopwatchViewModel", "Session saved successfully")
+                } catch (e: Exception) {
+                    Log.e("StopwatchViewModel", "Error saving session", e)
+                }
                 // Reset values after saving
                 _elapsedTime.value = 0L
                 accumulatedTime = 0L
@@ -86,6 +95,7 @@ class StopwatchViewModel(
                 sessionStartTime = 0L
             }
         } else {
+            Log.d("StopwatchViewModel", "No activity to save")
             _elapsedTime.value = 0L
             accumulatedTime = 0L
             _laps.value = emptyList()
@@ -95,6 +105,8 @@ class StopwatchViewModel(
 
     private suspend fun saveSession() {
         val endTime = System.currentTimeMillis()
+        Log.d("StopwatchViewModel", "Creating session: startTime=$sessionStartTime, endTime=$endTime, duration=${_elapsedTime.value}")
+
         val session = SessionEntity(
             startTime = sessionStartTime,
             endTime = endTime,
@@ -103,6 +115,7 @@ class StopwatchViewModel(
         )
 
         val sessionId = sessionDao.insertSession(session)
+        Log.d("StopwatchViewModel", "Session inserted with ID: $sessionId")
 
         if (_laps.value.isNotEmpty()) {
             val lapEntities = _laps.value.map { lap ->
@@ -114,6 +127,7 @@ class StopwatchViewModel(
                 )
             }
             sessionDao.insertLaps(lapEntities)
+            Log.d("StopwatchViewModel", "Inserted ${lapEntities.size} laps")
         }
     }
 

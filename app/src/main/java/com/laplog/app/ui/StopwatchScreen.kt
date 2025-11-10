@@ -7,11 +7,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,10 +30,17 @@ fun StopwatchScreen(
     preferencesManager: PreferencesManager,
     sessionDao: SessionDao,
     onKeepScreenOn: (Boolean) -> Unit,
-    onLockOrientation: (Boolean) -> Unit
+    onLockOrientation: (Boolean) -> Unit,
+    onShowAbout: () -> Unit
 ) {
     val viewModel: StopwatchViewModel = viewModel(
         factory = StopwatchViewModelFactory(preferencesManager, sessionDao)
+    )
+
+    // Digital clock style font
+    val dseg7Font = FontFamily(
+        Font(R.font.dseg7_classic_regular, FontWeight.Normal),
+        Font(R.font.dseg7_classic_bold, FontWeight.Bold)
     )
 
     val elapsedTime by viewModel.elapsedTime.collectAsState()
@@ -68,12 +77,59 @@ fun StopwatchScreen(
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Time display with monospace font
+        // Settings toggles in horizontal row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // Show milliseconds toggle
+            IconToggleButton(
+                checked = showMilliseconds,
+                onCheckedChange = { viewModel.toggleMillisecondsDisplay() }
+            ) {
+                Icon(
+                    imageVector = if (showMilliseconds) Icons.Filled.AccessTime else Icons.Outlined.AccessTime,
+                    contentDescription = stringResource(R.string.show_milliseconds),
+                    tint = if (showMilliseconds) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Keep screen on toggle
+            IconToggleButton(
+                checked = keepScreenOn,
+                onCheckedChange = { viewModel.toggleKeepScreenOn() }
+            ) {
+                Icon(
+                    imageVector = if (keepScreenOn) Icons.Filled.Smartphone else Icons.Outlined.Smartphone,
+                    contentDescription = stringResource(R.string.keep_screen_on),
+                    tint = if (keepScreenOn) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Lock orientation toggle
+            IconToggleButton(
+                checked = lockOrientation,
+                onCheckedChange = { viewModel.toggleLockOrientation() }
+            ) {
+                Icon(
+                    imageVector = if (lockOrientation) Icons.Filled.Lock else Icons.Outlined.LockOpen,
+                    contentDescription = stringResource(R.string.lock_orientation),
+                    tint = if (lockOrientation) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Time display with digital clock font
         Text(
             text = viewModel.formatTime(elapsedTime),
             fontSize = 56.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = dseg7Font,
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -132,76 +188,6 @@ fun StopwatchScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Settings toggles in horizontal row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            // Show milliseconds toggle
-            IconToggleButton(
-                checked = showMilliseconds,
-                onCheckedChange = { viewModel.toggleMillisecondsDisplay() }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = if (showMilliseconds) Icons.Filled.AccessTime else Icons.Outlined.AccessTime,
-                        contentDescription = stringResource(R.string.show_milliseconds),
-                        tint = if (showMilliseconds) MaterialTheme.colorScheme.primary
-                              else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "ms",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (showMilliseconds) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Keep screen on toggle
-            IconToggleButton(
-                checked = keepScreenOn,
-                onCheckedChange = { viewModel.toggleKeepScreenOn() }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = if (keepScreenOn) Icons.Filled.Smartphone else Icons.Outlined.Smartphone,
-                        contentDescription = stringResource(R.string.keep_screen_on),
-                        tint = if (keepScreenOn) MaterialTheme.colorScheme.primary
-                              else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "Screen",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (keepScreenOn) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Lock orientation toggle
-            IconToggleButton(
-                checked = lockOrientation,
-                onCheckedChange = { viewModel.toggleLockOrientation() }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = if (lockOrientation) Icons.Filled.Lock else Icons.Outlined.LockOpen,
-                        contentDescription = stringResource(R.string.lock_orientation),
-                        tint = if (lockOrientation) MaterialTheme.colorScheme.primary
-                              else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "Lock",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (lockOrientation) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // Laps list
         if (laps.isNotEmpty()) {
@@ -219,7 +205,8 @@ fun StopwatchScreen(
                             lap = lap,
                             formatTime = { time ->
                                 viewModel.formatTime(time, showMilliseconds)
-                            }
+                            },
+                            fontFamily = dseg7Font
                         )
                         if (lap != laps.first()) {
                             Divider()
@@ -234,7 +221,8 @@ fun StopwatchScreen(
 @Composable
 fun LapItem(
     lap: com.laplog.app.model.LapTime,
-    formatTime: (Long) -> String
+    formatTime: (Long) -> String,
+    fontFamily: FontFamily
 ) {
     Row(
         modifier = Modifier
@@ -256,14 +244,14 @@ fun LapItem(
             Text(
                 text = formatTime(lap.totalTime),
                 style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = fontFamily,
                 fontWeight = FontWeight.Medium
             )
 
             Text(
                 text = formatTime(lap.lapDuration),
                 style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = fontFamily,
                 color = MaterialTheme.colorScheme.primary
             )
         }

@@ -8,13 +8,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -63,19 +62,36 @@ class MainActivity : ComponentActivity() {
         setContent {
             StopwatchTheme {
                 var selectedTab by remember { mutableStateOf(0) }
+                var showAboutDialog by remember { mutableStateOf(false) }
 
                 Scaffold(
                     bottomBar = {
                         Column {
-                            Text(
-                                text = getString(R.string.app_name),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 4.dp, bottom = 2.dp),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = getString(R.string.app_name),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                IconButton(
+                                    onClick = { showAboutDialog = true },
+                                    modifier = Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Info,
+                                        contentDescription = getString(R.string.about),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                             NavigationBar {
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.Timer, contentDescription = null) },
@@ -116,7 +132,8 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                                     }
-                                }
+                                },
+                                onShowAbout = { showAboutDialog = true }
                             )
                             1 -> HistoryScreen(
                                 preferencesManager = preferencesManager,
@@ -126,6 +143,31 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+                }
+
+                // About dialog
+                if (showAboutDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showAboutDialog = false },
+                        title = { Text(getString(R.string.app_name)) },
+                        text = {
+                            Column {
+                                Text("Version: ${getString(R.string.version_name)}")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("© 2025 Vitaly Sennikov")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = getString(R.string.about_description),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showAboutDialog = false }) {
+                                Text("OK")
+                            }
+                        }
+                    )
                 }
             }
         }

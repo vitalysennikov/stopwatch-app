@@ -1,5 +1,6 @@
 package com.laplog.app.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.laplog.app.data.PreferencesManager
@@ -30,13 +31,16 @@ class HistoryViewModel(
     private fun loadSessions() {
         viewModelScope.launch {
             sessionDao.getAllSessions().collect { sessionEntities ->
+                Log.d("HistoryViewModel", "Loaded ${sessionEntities.size} sessions from database")
                 val sessionsWithLaps = mutableListOf<SessionWithLaps>()
 
                 for (session in sessionEntities) {
+                    Log.d("HistoryViewModel", "Session ID: ${session.id}, StartTime: ${session.startTime}, Duration: ${session.totalDuration}")
                     // Get first emission from laps flow
                     var laps = emptyList<com.laplog.app.data.database.entity.LapEntity>()
                     sessionDao.getLapsForSession(session.id).collect { lapList ->
                         laps = lapList
+                        Log.d("HistoryViewModel", "Session ${session.id} has ${laps.size} laps")
                         // Take only first emission and break
                         return@collect
                     }
@@ -44,6 +48,7 @@ class HistoryViewModel(
                 }
 
                 _sessions.value = sessionsWithLaps
+                Log.d("HistoryViewModel", "Updated sessions state with ${sessionsWithLaps.size} sessions")
             }
         }
     }
