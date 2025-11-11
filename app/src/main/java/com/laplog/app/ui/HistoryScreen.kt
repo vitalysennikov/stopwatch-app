@@ -350,11 +350,10 @@ fun SessionItem(
                         )
                         Text(
                             text = formatTime(session.totalDuration),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontFamily = fontFamily
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
-                    if (laps.isNotEmpty()) {
+                    if (!expanded && laps.isNotEmpty()) {
                         // Calculate statistics for collapsed view
                         val lapDurations = laps.map { it.lapDuration }
                         val avgDuration = if (lapDurations.size >= 2) lapDurations.average().toLong() else null
@@ -387,7 +386,6 @@ fun SessionItem(
                                 Text(
                                     text = formatTime(avgDuration),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontFamily = fontFamily,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
@@ -398,7 +396,6 @@ fun SessionItem(
                                 Text(
                                     text = formatTime(medianDuration),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontFamily = fontFamily,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
