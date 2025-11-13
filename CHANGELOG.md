@@ -27,6 +27,19 @@
   - ACTION_OPEN_DOCUMENT_TREE не поддерживается облачными провайдерами
   - Добавлен альтернативный метод через ACTION_CREATE_DOCUMENT
 
+### Создание релиза
+Для создания тега версии 0.9.0 выполните:
+```bash
+# Создать аннотированный тег
+git tag -a v0.9.0 -m "Release v0.9.0: Cloud storage support for backups"
+
+# Отправить тег на GitHub
+git push origin v0.9.0
+
+# Или отправить все теги
+git push origin --tags
+```
+
 ---
 
 ## [0.8.0] - 2025-11-13
