@@ -43,6 +43,9 @@ class StopwatchViewModel(
     private val _usedComments = MutableStateFlow<Set<String>>(preferencesManager.usedComments)
     val usedComments: StateFlow<Set<String>> = _usedComments.asStateFlow()
 
+    private val _invertLapColors = MutableStateFlow(preferencesManager.invertLapColors)
+    val invertLapColors: StateFlow<Boolean> = _invertLapColors.asStateFlow()
+
     private var timerJob: Job? = null
     private var startTime = 0L
     private var accumulatedTime = 0L
@@ -175,6 +178,11 @@ class StopwatchViewModel(
         preferencesManager.lockOrientation = _lockOrientation.value
     }
 
+    fun toggleInvertLapColors() {
+        _invertLapColors.value = !_invertLapColors.value
+        preferencesManager.invertLapColors = _invertLapColors.value
+    }
+
     fun updateCurrentComment(comment: String) {
         _currentComment.value = comment
         preferencesManager.currentComment = comment
@@ -188,10 +196,17 @@ class StopwatchViewModel(
         }
     }
 
-    fun formatTime(timeInMillis: Long, includeMillis: Boolean = _showMilliseconds.value): String {
-        val hours = (timeInMillis / 3600000).toInt()
-        val minutes = ((timeInMillis % 3600000) / 60000).toInt()
-        val seconds = ((timeInMillis % 60000) / 1000).toInt()
+    fun formatTime(timeInMillis: Long, includeMillis: Boolean = _showMilliseconds.value, roundIfNoMillis: Boolean = true): String {
+        // Apply mathematical rounding if milliseconds are not shown and rounding is enabled
+        val adjustedTime = if (!includeMillis && roundIfNoMillis && timeInMillis % 1000 >= 500) {
+            timeInMillis + 1000 - (timeInMillis % 1000)
+        } else {
+            timeInMillis
+        }
+
+        val hours = (adjustedTime / 3600000).toInt()
+        val minutes = ((adjustedTime % 3600000) / 60000).toInt()
+        val seconds = ((adjustedTime % 60000) / 1000).toInt()
         val millis = ((timeInMillis % 1000) / 10).toInt()
 
         return if (hours > 0) {

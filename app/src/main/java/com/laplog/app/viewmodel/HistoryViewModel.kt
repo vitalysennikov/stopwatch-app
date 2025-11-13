@@ -27,9 +27,17 @@ class HistoryViewModel(
     private val _expandAll = MutableStateFlow(true) // default: all expanded
     val expandAll: StateFlow<Boolean> = _expandAll.asStateFlow()
 
+    private val _showMillisecondsInHistory = MutableStateFlow(preferencesManager.showMillisecondsInHistory)
+    val showMillisecondsInHistory: StateFlow<Boolean> = _showMillisecondsInHistory.asStateFlow()
+
     init {
         loadSessions()
         loadUsedComments()
+    }
+
+    fun toggleMillisecondsInHistory() {
+        _showMillisecondsInHistory.value = !_showMillisecondsInHistory.value
+        preferencesManager.showMillisecondsInHistory = _showMillisecondsInHistory.value
     }
 
     private fun loadSessions() {
@@ -98,9 +106,16 @@ class HistoryViewModel(
     }
 
     fun formatTime(timeInMillis: Long, includeMillis: Boolean = false): String {
-        val hours = (timeInMillis / 3600000).toInt()
-        val minutes = ((timeInMillis % 3600000) / 60000).toInt()
-        val seconds = ((timeInMillis % 60000) / 1000).toInt()
+        // Apply mathematical rounding if milliseconds are not shown (≥500ms → +1s)
+        val adjustedTime = if (!includeMillis && timeInMillis % 1000 >= 500) {
+            timeInMillis + 1000 - (timeInMillis % 1000)
+        } else {
+            timeInMillis
+        }
+
+        val hours = (adjustedTime / 3600000).toInt()
+        val minutes = ((adjustedTime % 3600000) / 60000).toInt()
+        val seconds = ((adjustedTime % 60000) / 1000).toInt()
         val millis = ((timeInMillis % 1000) / 10).toInt()
 
         return if (hours > 0) {

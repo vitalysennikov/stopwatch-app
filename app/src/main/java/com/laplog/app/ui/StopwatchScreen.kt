@@ -52,6 +52,7 @@ fun StopwatchScreen(
     val lockOrientation by viewModel.lockOrientation.collectAsState()
     val currentComment by viewModel.currentComment.collectAsState()
     val usedComments by viewModel.usedComments.collectAsState()
+    val invertLapColors by viewModel.invertLapColors.collectAsState()
 
     var showCommentSuggestions by remember { mutableStateOf(false) }
 
@@ -160,13 +161,26 @@ fun StopwatchScreen(
                           else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // Invert lap colors toggle
+            IconToggleButton(
+                checked = invertLapColors,
+                onCheckedChange = { viewModel.toggleInvertLapColors() }
+            ) {
+                Icon(
+                    imageVector = if (invertLapColors) Icons.Filled.SwapVert else Icons.Outlined.SwapVert,
+                    contentDescription = "Invert lap colors",
+                    tint = if (invertLapColors) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Time display with digital clock font
         Text(
-            text = viewModel.formatTime(elapsedTime),
+            text = viewModel.formatTime(elapsedTime, roundIfNoMillis = false),
             fontSize = 56.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = dseg7Font,
@@ -402,8 +416,13 @@ fun LapItem(
                         style = MaterialTheme.typography.bodyMedium,
                         fontFamily = fontFamily,
                         fontWeight = FontWeight.Medium,
-                        color = if (difference < 0) Color(0xFF4CAF50) // Green for faster laps
-                               else MaterialTheme.colorScheme.error, // Red for slower laps
+                        color = if (invertLapColors) {
+                            // Inverted: faster (negative) = red, slower (positive) = green
+                            if (difference < 0) MaterialTheme.colorScheme.error else Color(0xFF4CAF50)
+                        } else {
+                            // Normal: faster (negative) = green, slower (positive) = red
+                            if (difference < 0) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                        },
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }

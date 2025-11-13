@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.ScreenRotation
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,6 +48,7 @@ fun HistoryScreen(
     val sessions by viewModel.sessions.collectAsState()
     val usedComments by viewModel.usedComments.collectAsState()
     val expandAll by viewModel.expandAll.collectAsState()
+    val showMillisecondsInHistory by viewModel.showMillisecondsInHistory.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -64,6 +65,16 @@ fun HistoryScreen(
                         Icon(
                             imageVector = if (expandAll) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore,
                             contentDescription = if (expandAll) "Collapse All" else "Expand All"
+                        )
+                    }
+                    // Milliseconds toggle for history
+                    IconToggleButton(
+                        checked = showMillisecondsInHistory,
+                        onCheckedChange = { viewModel.toggleMillisecondsInHistory() }
+                    ) {
+                        Icon(
+                            imageVector = if (showMillisecondsInHistory) Icons.Default.Timer else Icons.Outlined.Timer,
+                            contentDescription = "Show milliseconds in history"
                         )
                     }
                     IconButton(onClick = { showAboutDialog = true }) {
@@ -124,8 +135,8 @@ fun HistoryScreen(
                         },
                         onDelete = { viewModel.deleteSession(sessionWithLaps.session) },
                         onDeleteBefore = { viewModel.deleteSessionsBefore(sessionWithLaps.session.startTime) },
-                        formatTime = { time -> viewModel.formatTime(time, true) }, // Show milliseconds in history
-                        formatDifference = { diff -> viewModel.formatDifference(diff, true) },
+                        formatTime = { time -> viewModel.formatTime(time, showMillisecondsInHistory) },
+                        formatDifference = { diff -> viewModel.formatDifference(diff, showMillisecondsInHistory) },
                         fontFamily = dseg7Font,
                         totalSessionCount = sessions.size,
                         sessionIndex = sessions.indexOf(sessionWithLaps),
@@ -328,7 +339,8 @@ fun SessionItem(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        if (!session.comment.isNullOrBlank()) {
+                        // Show comment inline only when collapsed
+                        if (!expanded && !session.comment.isNullOrBlank()) {
                             Text(
                                 text = "\u2014", // Em dash
                                 style = MaterialTheme.typography.titleMedium
@@ -341,6 +353,15 @@ fun SessionItem(
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )
                         }
+                    }
+                    // Show comment on separate line when expanded
+                    if (expanded && !session.comment.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = session.comment,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
