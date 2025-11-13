@@ -43,6 +43,9 @@ class StopwatchViewModel(
     private val _usedComments = MutableStateFlow<Set<String>>(preferencesManager.usedComments)
     val usedComments: StateFlow<Set<String>> = _usedComments.asStateFlow()
 
+    private val _commentsFromHistory = MutableStateFlow<List<String>>(emptyList())
+    val commentsFromHistory: StateFlow<List<String>> = _commentsFromHistory.asStateFlow()
+
     private val _invertLapColors = MutableStateFlow(preferencesManager.invertLapColors)
     val invertLapColors: StateFlow<Boolean> = _invertLapColors.asStateFlow()
 
@@ -50,6 +53,16 @@ class StopwatchViewModel(
     private var startTime = 0L
     private var accumulatedTime = 0L
     private var sessionStartTime = 0L
+
+    init {
+        loadCommentsFromHistory()
+    }
+
+    private fun loadCommentsFromHistory() {
+        viewModelScope.launch {
+            _commentsFromHistory.value = sessionDao.getDistinctComments()
+        }
+    }
 
     fun startOrPause() {
         if (_isRunning.value) {
@@ -94,6 +107,8 @@ class StopwatchViewModel(
                 try {
                     saveSession()
                     Log.d("StopwatchViewModel", "Session saved successfully")
+                    // Reload comments from history after saving
+                    loadCommentsFromHistory()
                 } catch (e: Exception) {
                     Log.e("StopwatchViewModel", "Error saving session", e)
                 }

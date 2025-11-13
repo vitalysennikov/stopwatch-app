@@ -13,9 +13,22 @@ class PreferencesManager(context: Context) {
         get() = prefs.getBoolean(KEY_SHOW_MILLISECONDS, true)
         set(value) = prefs.edit().putBoolean(KEY_SHOW_MILLISECONDS, value).apply()
 
-    var keepScreenOn: Boolean
-        get() = prefs.getBoolean(KEY_KEEP_SCREEN_ON, true)
-        set(value) = prefs.edit().putBoolean(KEY_KEEP_SCREEN_ON, value).apply()
+    var screenOnMode: ScreenOnMode
+        get() {
+            val modeName = prefs.getString(KEY_SCREEN_ON_MODE, null)
+            return if (modeName != null) {
+                try {
+                    ScreenOnMode.valueOf(modeName)
+                } catch (e: IllegalArgumentException) {
+                    ScreenOnMode.WHILE_RUNNING
+                }
+            } else {
+                // Migration from old Boolean keepScreenOn
+                val oldValue = prefs.getBoolean(KEY_KEEP_SCREEN_ON, true)
+                if (oldValue) ScreenOnMode.WHILE_RUNNING else ScreenOnMode.OFF
+            }
+        }
+        set(value) = prefs.edit().putString(KEY_SCREEN_ON_MODE, value.name).apply()
 
     var usedComments: Set<String>
         get() = prefs.getStringSet(KEY_USED_COMMENTS, emptySet()) ?: emptySet()
@@ -40,7 +53,8 @@ class PreferencesManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "laplog_preferences"
         private const val KEY_SHOW_MILLISECONDS = "show_milliseconds"
-        private const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
+        private const val KEY_KEEP_SCREEN_ON = "keep_screen_on"  // Legacy
+        private const val KEY_SCREEN_ON_MODE = "screen_on_mode"
         private const val KEY_USED_COMMENTS = "used_comments"
         private const val KEY_LOCK_ORIENTATION = "lock_orientation"
         private const val KEY_CURRENT_COMMENT = "current_comment"

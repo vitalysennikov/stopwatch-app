@@ -52,9 +52,10 @@ fun StopwatchScreen(
     val lockOrientation by viewModel.lockOrientation.collectAsState()
     val currentComment by viewModel.currentComment.collectAsState()
     val usedComments by viewModel.usedComments.collectAsState()
+    val commentsFromHistory by viewModel.commentsFromHistory.collectAsState()
     val invertLapColors by viewModel.invertLapColors.collectAsState()
 
-    var showCommentSuggestions by remember { mutableStateOf(false) }
+    var expandedCommentDropdown by remember { mutableStateOf(false) }
 
     // Update keep screen on state
     LaunchedEffect(isRunning, keepScreenOn) {
@@ -74,43 +75,43 @@ fun StopwatchScreen(
     ) {
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Comment input with autocomplete
-        Column {
+        // Comment dropdown from history
+        ExposedDropdownMenuBox(
+            expanded = expandedCommentDropdown,
+            onExpandedChange = {
+                if (!isRunning) expandedCommentDropdown = it
+            }
+        ) {
             OutlinedTextField(
                 value = currentComment,
-                onValueChange = {
-                    viewModel.updateCurrentComment(it)
-                    showCommentSuggestions = it.isNotBlank()
-                },
+                onValueChange = { viewModel.updateCurrentComment(it) },
                 label = { Text(stringResource(R.string.comment_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
                 singleLine = true,
-                enabled = !isRunning  // Disable during running
+                enabled = !isRunning,
+                trailingIcon = {
+                    if (commentsFromHistory.isNotEmpty()) {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCommentDropdown)
+                    }
+                },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
             )
 
-            // Autocomplete suggestions
-            if (showCommentSuggestions) {
-                val filteredSuggestions = usedComments.filter {
-                    it.contains(currentComment, ignoreCase = true) && it != currentComment
-                }
-                if (filteredSuggestions.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column {
-                            filteredSuggestions.take(3).forEach { suggestion ->
-                                TextButton(
-                                    onClick = {
-                                        viewModel.updateCurrentComment(suggestion)
-                                        showCommentSuggestions = false
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(suggestion)
-                                }
+            if (commentsFromHistory.isNotEmpty()) {
+                ExposedDropdownMenu(
+                    expanded = expandedCommentDropdown,
+                    onDismissRequest = { expandedCommentDropdown = false }
+                ) {
+                    commentsFromHistory.forEach { comment ->
+                        DropdownMenuItem(
+                            text = { Text(comment) },
+                            onClick = {
+                                viewModel.updateCurrentComment(comment)
+                                expandedCommentDropdown = false
                             }
-                        }
+                        )
                     }
                 }
             }

@@ -30,6 +30,9 @@ class HistoryViewModel(
     private val _showMillisecondsInHistory = MutableStateFlow(preferencesManager.showMillisecondsInHistory)
     val showMillisecondsInHistory: StateFlow<Boolean> = _showMillisecondsInHistory.asStateFlow()
 
+    private val _invertLapColors = MutableStateFlow(preferencesManager.invertLapColors)
+    val invertLapColors: StateFlow<Boolean> = _invertLapColors.asStateFlow()
+
     init {
         loadSessions()
         loadUsedComments()
@@ -38,6 +41,11 @@ class HistoryViewModel(
     fun toggleMillisecondsInHistory() {
         _showMillisecondsInHistory.value = !_showMillisecondsInHistory.value
         preferencesManager.showMillisecondsInHistory = _showMillisecondsInHistory.value
+    }
+
+    fun toggleInvertLapColors() {
+        _invertLapColors.value = !_invertLapColors.value
+        preferencesManager.invertLapColors = _invertLapColors.value
     }
 
     private fun loadSessions() {

@@ -49,6 +49,7 @@ fun HistoryScreen(
     val usedComments by viewModel.usedComments.collectAsState()
     val expandAll by viewModel.expandAll.collectAsState()
     val showMillisecondsInHistory by viewModel.showMillisecondsInHistory.collectAsState()
+    val invertLapColors by viewModel.invertLapColors.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -140,7 +141,8 @@ fun HistoryScreen(
                         fontFamily = dseg7Font,
                         totalSessionCount = sessions.size,
                         sessionIndex = sessions.indexOf(sessionWithLaps),
-                        expandAll = expandAll
+                        expandAll = expandAll,
+                        invertLapColors = invertLapColors
                     )
                     Divider()
                 }
@@ -294,7 +296,8 @@ fun SessionItem(
     fontFamily: FontFamily,
     totalSessionCount: Int,
     sessionIndex: Int,
-    expandAll: Boolean
+    expandAll: Boolean,
+    invertLapColors: Boolean
 ) {
     var expanded by remember { mutableStateOf(expandAll) }
 
@@ -572,8 +575,13 @@ fun SessionItem(
                                         style = MaterialTheme.typography.bodySmall,
                                         fontFamily = fontFamily,
                                         fontWeight = FontWeight.Medium,
-                                        color = if (difference < 0) Color(0xFF4CAF50) // Green for faster laps
-                                               else MaterialTheme.colorScheme.error, // Red for slower laps
+                                        color = if (invertLapColors) {
+                                            // Inverted: faster (negative) = red, slower (positive) = green
+                                            if (difference < 0) MaterialTheme.colorScheme.error else Color(0xFF4CAF50)
+                                        } else {
+                                            // Normal: faster (negative) = green, slower (positive) = red
+                                            if (difference < 0) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                                        },
                                         modifier = Modifier.padding(start = 8.dp)
                                     )
                                 }

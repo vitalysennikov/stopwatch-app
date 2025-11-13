@@ -30,4 +30,7 @@ interface SessionDao {
 
     @Query("UPDATE sessions SET comment = :comment WHERE id = :sessionId")
     suspend fun updateSessionComment(sessionId: Long, comment: String)
+
+    @Query("SELECT DISTINCT comment FROM sessions WHERE comment IS NOT NULL AND comment != '' ORDER BY comment ASC")
+    suspend fun getDistinctComments(): List<String>
 }
