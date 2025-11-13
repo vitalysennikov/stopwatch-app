@@ -34,6 +34,12 @@ class StopwatchService : Service() {
         const val ACTION_LAP = "com.laplog.app.LAP"
         const val ACTION_RESUME = "com.laplog.app.RESUME"
 
+        // Broadcast actions for MainActivity
+        const val BROADCAST_PAUSE = "com.laplog.app.BROADCAST_PAUSE"
+        const val BROADCAST_RESUME = "com.laplog.app.BROADCAST_RESUME"
+        const val BROADCAST_LAP = "com.laplog.app.BROADCAST_LAP"
+        const val BROADCAST_STOP = "com.laplog.app.BROADCAST_STOP"
+
         const val EXTRA_ELAPSED_TIME = "elapsed_time"
         const val EXTRA_IS_RUNNING = "is_running"
         const val EXTRA_LAP_COUNT = "lap_count"
@@ -57,18 +63,32 @@ class StopwatchService : Service() {
                 isRunning = true
                 startForeground(NOTIFICATION_ID, buildNotification())
                 startNotificationUpdates()
+
+                // Send broadcast to MainActivity
+                if (intent.action == ACTION_RESUME) {
+                    sendBroadcast(Intent(BROADCAST_RESUME))
+                }
             }
             ACTION_PAUSE -> {
                 isRunning = false
                 accumulatedTime += System.currentTimeMillis() - startTime
                 stopNotificationUpdates()
                 updateNotification()
+
+                // Send broadcast to MainActivity
+                sendBroadcast(Intent(BROADCAST_PAUSE))
             }
             ACTION_STOP -> {
+                // Send broadcast to MainActivity
+                sendBroadcast(Intent(BROADCAST_STOP))
+
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
             ACTION_LAP -> {
+                // Send broadcast to MainActivity
+                sendBroadcast(Intent(BROADCAST_LAP))
+
                 // Lap action - just update notification
                 // Actual lap logic is handled in ViewModel
                 updateNotification()
@@ -172,21 +192,23 @@ class StopwatchService : Service() {
                 .bigText("$timeString\n$lapInfo".trim()))
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(pendingIntent)
             .setSilent(true)
             .addAction(
-                if (isRunning) R.drawable.ic_notification else R.drawable.ic_notification,
-                if (isRunning) getString(R.string.pause) else getString(R.string.resume),
+                android.R.drawable.ic_media_pause,
+                null, // No text, icon only
                 pauseResumePendingIntent
             )
             .addAction(
-                R.drawable.ic_notification,
-                getString(R.string.lap),
+                android.R.drawable.ic_input_add,
+                null, // No text, icon only
                 lapPendingIntent
             )
             .addAction(
-                R.drawable.ic_notification,
-                getString(R.string.reset),
+                android.R.drawable.ic_delete,
+                null, // No text, icon only
                 stopPendingIntent
             )
             .build()

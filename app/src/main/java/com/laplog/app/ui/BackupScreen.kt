@@ -102,7 +102,10 @@ fun BackupScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(stringResource(R.string.auto_backup))
+                        Text(
+                            text = stringResource(R.string.auto_backup),
+                            modifier = Modifier.weight(1f)
+                        )
                         Switch(
                             checked = autoBackupEnabled,
                             onCheckedChange = { viewModel.toggleAutoBackup() },
@@ -197,9 +200,13 @@ fun BackupScreen(
                 }
             } else {
                 Card(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
                 ) {
-                    LazyColumn {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         items(backups) { backup ->
                             BackupItem(
                                 backup = backup,

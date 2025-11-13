@@ -49,7 +49,7 @@
     <string name="about">О программе</string>
     <string name="version_label">Версия</string>
     <string name="version">Версия %1$s</string>
-    <string name="version_name">0.8.0</string>
+    <string name="version_name">0.8.1</string>
     <string name="about_description">LapLog Free — это секундомер с отметками кругов и историей сессий. Отслеживайте время с точностью и сохраняйте сессии для последующего просмотра.</string>
     <string name="language">Язык</string>
     <string name="language_system">Системный</string>
@@ -71,7 +71,7 @@
     <string name="toggle_screen_on_desc">Держать экран включённым (нажмите для смены режима)</string>
     <string name="toggle_screen_on_off">Экран ВЫКЛ: Экран гаснет как обычно</string>
     <string name="toggle_screen_on_running">Экран ВКЛ при работе: Экран не гаснет только когда секундомер работает</string>
-    <string name="toggle_screen_on_always">Экран ВСЕГДА ВКЛ: Экран никогда не гаснет</string>
+    <string name="toggle_screen_on_always">Экран ВСЕГДА ВКЛ: Экран не гаснет при работе секундомера, даже в фоне</string>
     <string name="toggle_orientation_desc">Блокировать ориентацию экрана</string>
     <string name="toggle_invert_colors_desc">Инвертировать цвета кругов (быстрее/медленнее)</string>
 

@@ -224,6 +224,29 @@ class StopwatchViewModel(
         }
     }
 
+    // Methods for notification actions
+    fun pauseFromNotification() {
+        if (_isRunning.value) {
+            pause()
+        }
+    }
+
+    fun startOrResumeFromNotification() {
+        if (!_isRunning.value) {
+            startOrPause()
+        }
+    }
+
+    fun lapFromNotification() {
+        if (_isRunning.value && _elapsedTime.value > 0) {
+            addLap()
+        }
+    }
+
+    fun resetFromNotification() {
+        reset()
+    }
+
     fun toggleMillisecondsDisplay() {
         _showMilliseconds.value = !_showMilliseconds.value
         preferencesManager.showMilliseconds = _showMilliseconds.value

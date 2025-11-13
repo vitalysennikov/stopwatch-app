@@ -1,5 +1,10 @@
 package com.laplog.app.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +30,7 @@ import com.laplog.app.R
 import com.laplog.app.data.PreferencesManager
 import com.laplog.app.data.ScreenOnMode
 import com.laplog.app.data.database.dao.SessionDao
+import com.laplog.app.service.StopwatchService
 import com.laplog.app.viewmodel.StopwatchViewModel
 import com.laplog.app.viewmodel.StopwatchViewModelFactory
 
@@ -41,6 +47,37 @@ fun StopwatchScreen(
     val viewModel: StopwatchViewModel = viewModel(
         factory = StopwatchViewModelFactory(context, preferencesManager, sessionDao)
     )
+
+    // BroadcastReceiver for service actions
+    DisposableEffect(Unit) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    StopwatchService.BROADCAST_PAUSE -> viewModel.pauseFromNotification()
+                    StopwatchService.BROADCAST_RESUME -> viewModel.startOrResumeFromNotification()
+                    StopwatchService.BROADCAST_LAP -> viewModel.lapFromNotification()
+                    StopwatchService.BROADCAST_STOP -> viewModel.resetFromNotification()
+                }
+            }
+        }
+
+        val intentFilter = IntentFilter().apply {
+            addAction(StopwatchService.BROADCAST_PAUSE)
+            addAction(StopwatchService.BROADCAST_RESUME)
+            addAction(StopwatchService.BROADCAST_LAP)
+            addAction(StopwatchService.BROADCAST_STOP)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, intentFilter)
+        }
+
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
 
     // Refresh comments from history when screen becomes visible
     LaunchedEffect(isVisible) {

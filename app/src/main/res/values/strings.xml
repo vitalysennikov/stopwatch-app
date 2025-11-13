@@ -49,7 +49,7 @@
     <string name="about">About</string>
     <string name="version_label">Version</string>
     <string name="version">Version %1$s</string>
-    <string name="version_name">0.8.0</string>
+    <string name="version_name">0.8.1</string>
     <string name="about_description">LapLog Free is a stopwatch app with lap tracking and session history. Track your time with precision and save your sessions for later review.</string>
     <string name="language">Language</string>
     <string name="language_system">System default</string>
@@ -71,7 +71,7 @@
     <string name="toggle_screen_on_desc">Keep screen on (tap to cycle modes)</string>
     <string name="toggle_screen_on_off">Screen OFF: Screen dims normally</string>
     <string name="toggle_screen_on_running">Screen ON while running: Screen stays on only when stopwatch is running</string>
-    <string name="toggle_screen_on_always">Screen ALWAYS ON: Screen never dims</string>
+    <string name="toggle_screen_on_always">Screen ALWAYS ON: Screen stays on while stopwatch is running, even in background</string>
     <string name="toggle_orientation_desc">Lock screen orientation</string>
     <string name="toggle_invert_colors_desc">Invert lap colors (faster/slower)</string>
 
