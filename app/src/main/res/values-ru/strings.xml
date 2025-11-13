@@ -49,7 +49,7 @@
     <string name="about">О программе</string>
     <string name="version_label">Версия</string>
     <string name="version">Версия %1$s</string>
-    <string name="version_name">0.8.0</string>
+    <string name="version_name">0.9.0</string>
     <string name="about_description">LapLog Free — это секундомер с отметками кругов и историей сессий. Отслеживайте время с точностью и сохраняйте сессии для последующего просмотра.</string>
     <string name="language">Язык</string>
     <string name="language_system">Системный</string>
@@ -88,6 +88,9 @@
     <string name="last_backup">Последняя резервная копия</string>
     <string name="never">Никогда</string>
     <string name="backup_now">Создать резервную копию</string>
+    <string name="save_backup_to">Сохранить копию в…</string>
+    <string name="backup_saved">Резервная копия успешно сохранена</string>
+    <string name="backup_save_error">Ошибка сохранения резервной копии</string>
     <string name="available_backups">Доступные резервные копии</string>
     <string name="no_backups_found">Резервные копии не найдены</string>
     <string name="restore">Восстановить</string>

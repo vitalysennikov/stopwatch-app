@@ -28,51 +28,25 @@ class BackupManager(
     }
 
     /**
+     * Generate backup data for manual save (can be used with cloud storage)
+     */
+    suspend fun generateBackupData(): Result<Pair<String, String>> {
+        return try {
+            val backupData = createBackupData()
+            val json = backupDataToJson(backupData)
+            val fileName = generateBackupFileName()
+            Result.success(Pair(fileName, json))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Export full database to JSON and save to selected folder
      */
     suspend fun createBackup(folderUri: Uri): Result<BackupFileInfo> {
         return try {
-            // Get all sessions from database
-            val sessions = sessionDao.getAllSessions().first()
-            val backupSessions = mutableListOf<BackupSession>()
-
-            for (session in sessions) {
-                val laps = sessionDao.getLapsForSession(session.id).first()
-                val backupLaps = laps.map { lap ->
-                    BackupLap(
-                        lapNumber = lap.lapNumber,
-                        totalTime = lap.totalTime,
-                        lapDuration = lap.lapDuration
-                    )
-                }
-                backupSessions.add(
-                    BackupSession(
-                        id = session.id,
-                        startTime = session.startTime,
-                        endTime = session.endTime,
-                        totalDuration = session.totalDuration,
-                        comment = session.comment,
-                        laps = backupLaps
-                    )
-                )
-            }
-
-            // Get current settings
-            val backupSettings = BackupSettings(
-                showMilliseconds = preferencesManager.showMilliseconds,
-                screenOnMode = preferencesManager.screenOnMode.name,
-                lockOrientation = preferencesManager.lockOrientation,
-                showMillisecondsInHistory = preferencesManager.showMillisecondsInHistory,
-                invertLapColors = preferencesManager.invertLapColors,
-                appLanguage = preferencesManager.appLanguage
-            )
-
-            val backupData = BackupData(
-                version = "0.8.0",
-                timestamp = System.currentTimeMillis(),
-                sessions = backupSessions,
-                settings = backupSettings
-            )
+            val backupData = createBackupData()
 
             // Convert to JSON
             val json = backupDataToJson(backupData)
@@ -153,6 +127,53 @@ class BackupManager(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * Create backup data from current database state
+     */
+    private suspend fun createBackupData(): BackupData {
+        // Get all sessions from database
+        val sessions = sessionDao.getAllSessions().first()
+        val backupSessions = mutableListOf<BackupSession>()
+
+        for (session in sessions) {
+            val laps = sessionDao.getLapsForSession(session.id).first()
+            val backupLaps = laps.map { lap ->
+                BackupLap(
+                    lapNumber = lap.lapNumber,
+                    totalTime = lap.totalTime,
+                    lapDuration = lap.lapDuration
+                )
+            }
+            backupSessions.add(
+                BackupSession(
+                    id = session.id,
+                    startTime = session.startTime,
+                    endTime = session.endTime,
+                    totalDuration = session.totalDuration,
+                    comment = session.comment,
+                    laps = backupLaps
+                )
+            )
+        }
+
+        // Get current settings
+        val backupSettings = BackupSettings(
+            showMilliseconds = preferencesManager.showMilliseconds,
+            screenOnMode = preferencesManager.screenOnMode.name,
+            lockOrientation = preferencesManager.lockOrientation,
+            showMillisecondsInHistory = preferencesManager.showMillisecondsInHistory,
+            invertLapColors = preferencesManager.invertLapColors,
+            appLanguage = preferencesManager.appLanguage
+        )
+
+        return BackupData(
+            version = "0.9.0",
+            timestamp = System.currentTimeMillis(),
+            sessions = backupSessions,
+            settings = backupSettings
+        )
     }
 
     /**

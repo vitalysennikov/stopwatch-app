@@ -5,8 +5,8 @@
 **LapLog Free** is an Android stopwatch application with lap tracking and session history features. The name reflects two key features: **Lap** marks and **Log** (history) of sessions.
 
 - **Package**: `com.laplog.app`
-- **Current Version**: 0.3.0 (versionCode 4) - IN DEVELOPMENT
-- **Stable Version**: 0.2.0 (tagged)
+- **Current Version**: 0.9.0 (versionCode 18) - IN DEVELOPMENT
+- **Stable Version**: 0.8.0 (tagged)
 - **Min SDK**: 24 (Android 7.0)
 - **Target SDK**: 34 (Android 14)
 - **Latest Build**: GitHub Actions builds APK on every push to main
@@ -151,7 +151,7 @@ See `task_2.md` for detailed requirements.
 - ✅ Stage 7: UI polish and navigation
 - ✅ Bug fix: Session saving to history (Flow.first)
 
-### Version 0.3.0 (IN DEVELOPMENT - dev branch)
+### Version 0.3.0 (COMPLETED)
 - ✅ DSEG7 digital clock font (angular/segmented display style)
 - ✅ Lap statistics: AVG/MEDIAN on stopwatch and history
 - ✅ Enhanced lap display: +/-N.N s difference indicators
@@ -165,6 +165,19 @@ See `task_2.md` for detailed requirements.
 - ✅ Comment moved to session header (next to date)
 - ✅ Seconds added to session timestamps
 - ✅ Fixed session saving bug (Flow.collect → Flow.first)
+
+### Version 0.9.0 (IN DEVELOPMENT)
+- ✅ Cloud storage support for backups
+  - New "Save Backup To..." button in Backup screen
+  - Uses ACTION_CREATE_DOCUMENT for cloud storage compatibility
+  - Supports Dropbox, Google Drive, MEGA and other cloud providers
+  - Works alongside automatic local backups
+- ✅ Dual backup approach
+  - "Backup Now" - save to selected local folder (for auto-backups)
+  - "Save Backup To..." - manual save anywhere (including cloud)
+- ✅ Fixed cloud storage accessibility issue
+  - Previous ACTION_OPEN_DOCUMENT_TREE not supported by cloud providers
+  - Added alternative method for manual cloud backups
 
 ### Known Issues
 - None currently
