@@ -23,9 +23,13 @@ import com.laplog.app.data.PreferencesManager
 import com.laplog.app.data.ScreenOnMode
 import com.laplog.app.data.database.AppDatabase
 import com.laplog.app.model.SessionWithLaps
+import com.laplog.app.ui.BackupScreen
 import com.laplog.app.ui.HistoryScreen
 import com.laplog.app.ui.StopwatchScreen
 import com.laplog.app.ui.theme.StopwatchTheme
+import com.laplog.app.viewmodel.BackupViewModel
+import com.laplog.app.viewmodel.BackupViewModelFactory
+import androidx.lifecycle.ViewModelProvider
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +38,20 @@ class MainActivity : ComponentActivity() {
     private lateinit var database: AppDatabase
     private var pendingExportData: String? = null
     private var pendingFileName: String? = null
+    private lateinit var backupViewModel: BackupViewModel
+
+    private val selectBackupFolderLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        uri?.let {
+            // Take persistable URI permission
+            contentResolver.takePersistableUriPermission(
+                it,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            backupViewModel.setBackupFolder(it)
+        }
+    }
 
     private val createDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/*")
@@ -60,6 +78,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         preferencesManager = PreferencesManager(applicationContext)
         database = AppDatabase.getDatabase(applicationContext)
+
+        // Initialize BackupViewModel
+        backupViewModel = ViewModelProvider(
+            this,
+            BackupViewModelFactory(applicationContext, preferencesManager, database.sessionDao())
+        )[BackupViewModel::class.java]
 
         setContent {
             StopwatchTheme {
@@ -107,6 +131,12 @@ class MainActivity : ComponentActivity() {
                                     selected = selectedTab == 1,
                                     onClick = { selectedTab = 1 }
                                 )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.Backup, contentDescription = null) },
+                                    label = { Text(getString(R.string.backup)) },
+                                    selected = selectedTab == 2,
+                                    onClick = { selectedTab = 2 }
+                                )
                             }
                         }
                     }
@@ -148,6 +178,11 @@ class MainActivity : ComponentActivity() {
                                 sessionDao = database.sessionDao(),
                                 onExportCsv = { sessions -> exportToCsv(sessions) },
                                 onExportJson = { sessions -> exportToJson(sessions) }
+                            )
+                            2 -> BackupScreen(
+                                preferencesManager = preferencesManager,
+                                sessionDao = database.sessionDao(),
+                                onSelectFolder = { selectBackupFolderLauncher.launch(null) }
                             )
                         }
                     }

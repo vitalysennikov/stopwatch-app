@@ -7,6 +7,38 @@
 
 ---
 
+## [0.6.0] - 2025-11-13
+
+### Добавлено
+- **Автоматический Backup с универсальным облачным хранилищем**
+  - Работает с любым облаком через Storage Access Framework (Google Drive, OneDrive, Dropbox, QQ Cloud, Baidu и др.)
+  - Автоматический backup раз в день через WorkManager
+  - Ручной backup по требованию
+  - Формат JSON для простого восстановления
+  - Выбор режима восстановления: Replace (замена всех данных) или Merge (добавление к существующим)
+- **Экран Backup (третья вкладка)**
+  - Настройка папки для backup
+  - Переключатель автоматического backup
+  - Настройка срока хранения (по умолчанию 30 дней)
+  - Список доступных backups с датой и размером
+  - Восстановление из выбранного backup
+  - Удаление отдельных backups
+  - Автоматическое удаление старых backups
+- Новые компоненты:
+  - BackupManager для работы с Storage Access Framework
+  - BackupWorker для автоматического backup
+  - BackupViewModel и BackupScreen UI
+  - Модели данных: BackupData, BackupSession, BackupLap, BackupFileInfo
+
+### Технические детали
+- Используется Storage Access Framework для универсальной поддержки облачных хранилищ
+- WorkManager для периодического backup (раз в день)
+- DocumentFile API для работы с файлами
+- JSON формат для простого восстановления и совместимости
+- Persistable URI permissions для постоянного доступа к папке backup
+
+---
+
 ## [0.5.1] - 2025-11-13
 
 ### Добавлено

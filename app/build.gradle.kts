@@ -12,8 +12,8 @@ android {
         applicationId = "com.laplog.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.5.1"
+        versionCode = 13
+        versionName = "0.6.0"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -80,6 +80,12 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
+
+    // WorkManager for scheduled backups
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // DocumentFile for Storage Access Framework
+    implementation("androidx.documentfile:documentfile:1.0.1")
 
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")

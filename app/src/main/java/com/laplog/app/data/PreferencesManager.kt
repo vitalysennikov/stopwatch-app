@@ -50,6 +50,23 @@ class PreferencesManager(context: Context) {
         get() = prefs.getBoolean(KEY_INVERT_LAP_COLORS, false)
         set(value) = prefs.edit().putBoolean(KEY_INVERT_LAP_COLORS, value).apply()
 
+    // Backup settings
+    var backupFolderUri: String?
+        get() = prefs.getString(KEY_BACKUP_FOLDER_URI, null)
+        set(value) = prefs.edit().putString(KEY_BACKUP_FOLDER_URI, value).apply()
+
+    var autoBackupEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_BACKUP_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_AUTO_BACKUP_ENABLED, value).apply()
+
+    var backupRetentionDays: Int
+        get() = prefs.getInt(KEY_BACKUP_RETENTION_DAYS, 30)
+        set(value) = prefs.edit().putInt(KEY_BACKUP_RETENTION_DAYS, value).apply()
+
+    var lastBackupTime: Long
+        get() = prefs.getLong(KEY_LAST_BACKUP_TIME, 0L)
+        set(value) = prefs.edit().putLong(KEY_LAST_BACKUP_TIME, value).apply()
+
     companion object {
         private const val PREFS_NAME = "laplog_preferences"
         private const val KEY_SHOW_MILLISECONDS = "show_milliseconds"
@@ -60,5 +77,9 @@ class PreferencesManager(context: Context) {
         private const val KEY_CURRENT_COMMENT = "current_comment"
         private const val KEY_SHOW_MILLISECONDS_IN_HISTORY = "show_milliseconds_in_history"
         private const val KEY_INVERT_LAP_COLORS = "invert_lap_colors"
+        private const val KEY_BACKUP_FOLDER_URI = "backup_folder_uri"
+        private const val KEY_AUTO_BACKUP_ENABLED = "auto_backup_enabled"
+        private const val KEY_BACKUP_RETENTION_DAYS = "backup_retention_days"
+        private const val KEY_LAST_BACKUP_TIME = "last_backup_time"
     }
 }
