@@ -16,7 +16,7 @@ class BackupWorker(
     override suspend fun doWork(): Result {
         val preferencesManager = PreferencesManager(applicationContext)
         val database = AppDatabase.getDatabase(applicationContext)
-        val backupManager = BackupManager(applicationContext, database.sessionDao())
+        val backupManager = BackupManager(applicationContext, preferencesManager, database.sessionDao())
 
         // Check if auto backup is enabled
         if (!preferencesManager.autoBackupEnabled) {
