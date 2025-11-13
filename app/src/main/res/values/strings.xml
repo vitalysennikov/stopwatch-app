@@ -65,7 +65,6 @@
     <string name="backup_now">Backup Now</string>
     <string name="available_backups">Available Backups</string>
     <string name="restore">Restore</string>
-    <string name="delete">Delete</string>
     <string name="restore_mode_title">Restore Mode</string>
     <string name="restore_mode_message">Choose how to restore the backup:</string>
     <string name="replace_all">Replace All</string>
