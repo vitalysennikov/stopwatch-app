@@ -287,17 +287,17 @@ class StopwatchService : Service() {
             .setOnlyAlertOnce(true)  // Prevent notification from jumping position
             .addAction(
                 pauseResumeIcon,
-                if (isRunning) "Pause" else "Resume",
+                null,
                 pauseResumePendingIntent
             )
             .addAction(
                 R.drawable.ic_notification_lap,
-                "Lap",
+                null,
                 lapPendingIntent
             )
             .addAction(
                 R.drawable.ic_notification_stop,
-                "Stop",
+                null,
                 stopPendingIntent
             )
             .build()
