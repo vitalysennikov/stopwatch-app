@@ -44,6 +44,21 @@ interface SessionDao {
     @Query("SELECT DISTINCT name FROM sessions WHERE name IS NOT NULL AND name != '' ORDER BY name ASC")
     suspend fun getDistinctNames(): List<String>
 
+    @Query("SELECT DISTINCT name FROM sessions WHERE name IS NOT NULL AND name != ''")
+    fun getDistinctNamesFlow(): Flow<List<String>>
+
+    @Query("SELECT COUNT(*) FROM sessions WHERE name = :sessionName")
+    suspend fun countSessionsByName(sessionName: String): Int
+
+    @Query("SELECT MIN(startTime) FROM sessions WHERE name = :sessionName")
+    suspend fun minStartTimeByName(sessionName: String): Long?
+
+    @Query("SELECT MAX(startTime) FROM sessions WHERE name = :sessionName")
+    suspend fun maxStartTimeByName(sessionName: String): Long?
+
+    @Query("DELETE FROM sessions WHERE name = :sessionName")
+    suspend fun deleteSessionsByName(sessionName: String)
+
     @Query("UPDATE sessions SET name = :newName, name_id = :nameId WHERE name = :oldName")
     suspend fun renameSessionsByName(oldName: String, newName: String, nameId: Long)
 

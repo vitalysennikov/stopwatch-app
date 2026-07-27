@@ -51,6 +51,8 @@
     <string name="delete_sessions_before_message">Удалить эту сессию и все сессии до неё? (всего %1$d сессий)</string>
     <string name="delete_all_sessions_message">Удалить все %1$d сессий? Это действие нельзя отменить.</string>
     <string name="delete">Удалить</string>
+    <string name="delete_saved_name_message">Удалить сохранённое имя «%1$s»? С ним не связано ни одной сессии в истории.</string>
+    <string name="delete_saved_name_with_history_message">Внимание: с именем «%1$s» связано %2$d сессий(-я) в истории за период %3$s. При удалении этого имени они тоже будут удалены безвозвратно.</string>
 
     <!-- Export -->
     <string name="export_history">Экспорт истории</string>

@@ -38,6 +38,8 @@ import com.laplog.app.data.database.dao.SessionDao
 import com.laplog.app.data.database.dao.SessionNameDao
 import com.laplog.app.viewmodel.StopwatchViewModel
 import com.laplog.app.viewmodel.StopwatchViewModelFactory
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.roundToInt
 
@@ -88,6 +90,8 @@ fun StopwatchScreen(
     var showNotes by remember { mutableStateOf(currentNotes.isNotEmpty()) }
     var renameTargetName by remember { mutableStateOf<String?>(null) }
     var renameNewName by remember { mutableStateOf("") }
+    var deleteTargetName by remember { mutableStateOf<String?>(null) }
+    val namesWithHistory by viewModel.namesWithHistory.collectAsState()
 
     // Dim timer state
     var isTimedDim by remember { mutableStateOf(false) }
@@ -205,19 +209,37 @@ fun StopwatchScreen(
                             DropdownMenuItem(
                                 text = { Text(name) },
                                 trailingIcon = {
-                                    IconButton(
-                                        onClick = {
-                                            renameTargetName = name
-                                            renameNewName = name
-                                            expandedNameDropdown = false
-                                        },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Edit,
-                                            contentDescription = stringResource(R.string.rename),
-                                            modifier = Modifier.size(16.dp)
-                                        )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(
+                                            onClick = {
+                                                renameTargetName = name
+                                                renameNewName = name
+                                                expandedNameDropdown = false
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Edit,
+                                                contentDescription = stringResource(R.string.rename),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                deleteTargetName = name
+                                                viewModel.prepareDeleteSessionName(name)
+                                                expandedNameDropdown = false
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = stringResource(R.string.delete),
+                                                modifier = Modifier.size(16.dp),
+                                                tint = if (name in namesWithHistory) MaterialTheme.colorScheme.error
+                                                       else LocalContentColor.current
+                                            )
+                                        }
                                     }
                                 },
                                 onClick = {
@@ -252,6 +274,62 @@ fun StopwatchScreen(
                         },
                         dismissButton = {
                             TextButton(onClick = { renameTargetName = null }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
+                    )
+                }
+
+                // Delete saved name dialog — warns about linked session history, if any
+                deleteTargetName?.let { targetName ->
+                    val entity = sessionNames.firstOrNull { it.name == targetName }
+                    val impact by viewModel.deleteNameImpact.collectAsState()
+                    val currentImpact = impact.takeIf { it?.name == targetName }
+                    val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()) }
+                    AlertDialog(
+                        onDismissRequest = {
+                            deleteTargetName = null
+                            viewModel.clearDeleteNameImpact()
+                        },
+                        title = { Text(stringResource(R.string.delete_confirm_title)) },
+                        text = {
+                            when {
+                                currentImpact == null -> {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                }
+                                currentImpact.sessionCount == 0 -> {
+                                    Text(stringResource(R.string.delete_saved_name_message, targetName))
+                                }
+                                else -> {
+                                    val range = "${dateFormat.format(currentImpact.minStartTime!!)} – ${dateFormat.format(currentImpact.maxStartTime!!)}"
+                                    Text(
+                                        stringResource(
+                                            R.string.delete_saved_name_with_history_message,
+                                            targetName,
+                                            currentImpact.sessionCount,
+                                            range
+                                        ),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    if (entity != null) {
+                                        viewModel.confirmDeleteSessionName(entity)
+                                    }
+                                    deleteTargetName = null
+                                },
+                                enabled = currentImpact != null
+                            ) { Text(stringResource(R.string.delete)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                deleteTargetName = null
+                                viewModel.clearDeleteNameImpact()
+                            }) {
                                 Text(stringResource(R.string.cancel))
                             }
                         }

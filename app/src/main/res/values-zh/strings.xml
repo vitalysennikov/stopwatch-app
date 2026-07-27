@@ -51,6 +51,8 @@
     <string name="delete_sessions_before_message">删除此记录及之前的所有记录？（共 %1$d 条记录）</string>
     <string name="delete_all_sessions_message">删除所有 %1$d 条记录？此操作无法撤销。</string>
     <string name="delete">删除</string>
+    <string name="delete_saved_name_message">删除已保存的名称"%1$s"？该名称没有关联的历史记录。</string>
+    <string name="delete_saved_name_with_history_message">警告："%1$s" 关联了 %2$d 条历史记录（%3$s）。删除此名称将永久删除这些记录，且无法撤销。</string>
 
     <!-- Export -->
     <string name="export_history">导出历史</string>

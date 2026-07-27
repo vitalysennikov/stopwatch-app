@@ -51,6 +51,8 @@
     <string name="delete_sessions_before_message">Delete this session and all sessions before it? (%1$d sessions total)</string>
     <string name="delete_all_sessions_message">Delete all %1$d sessions? This cannot be undone.</string>
     <string name="delete">Delete</string>
+    <string name="delete_saved_name_message">Delete saved name \"%1$s\"? It has no session history linked to it.</string>
+    <string name="delete_saved_name_with_history_message">Warning: \"%1$s\" has %2$d session(s) in history from %3$s. Deleting this name will permanently delete all of them too. This cannot be undone.</string>
 
     <!-- Export -->
     <string name="export_history">Export history</string>

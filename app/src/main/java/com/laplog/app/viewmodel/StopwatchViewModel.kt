@@ -74,6 +74,11 @@ class StopwatchViewModel(
         .map { list -> list.map { it.name } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    // Имена, на которые ссылается хотя бы одна сохранённая сессия — их удалять нельзя.
+    val namesWithHistory: StateFlow<Set<String>> = sessionDao.getDistinctNamesFlow()
+        .map { it.toSet() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
     private val _invertLapColors = MutableStateFlow(preferencesManager.invertLapColors)
     val invertLapColors: StateFlow<Boolean> = _invertLapColors.asStateFlow()
 
@@ -765,6 +770,46 @@ class StopwatchViewModel(
         val accentsJson = serializeTickAccents(_tickAccents.value)
         viewModelScope.launch {
             upsertSessionName(name, sessionNameDao.getByName(name), togglesJson, accentsJson)
+        }
+    }
+
+    data class DeleteNameImpact(
+        val name: String,
+        val sessionCount: Int,
+        val minStartTime: Long?,
+        val maxStartTime: Long?
+    )
+
+    private val _deleteNameImpact = MutableStateFlow<DeleteNameImpact?>(null)
+    val deleteNameImpact: StateFlow<DeleteNameImpact?> = _deleteNameImpact.asStateFlow()
+
+    // Считает, сколько сессий истории связано с именем, и диапазон дат — чтобы
+    // показать явное предупреждение перед удалением (если история есть).
+    fun prepareDeleteSessionName(name: String) {
+        _deleteNameImpact.value = null
+        viewModelScope.launch {
+            val count = sessionDao.countSessionsByName(name)
+            val minTime = if (count > 0) sessionDao.minStartTimeByName(name) else null
+            val maxTime = if (count > 0) sessionDao.maxStartTimeByName(name) else null
+            _deleteNameImpact.value = DeleteNameImpact(name, count, minTime, maxTime)
+        }
+    }
+
+    fun clearDeleteNameImpact() {
+        _deleteNameImpact.value = null
+    }
+
+    // Удаляет сохранённое имя. Если с ним связана история — сначала каскадно
+    // удаляются все её сессии (и их круги — по FK ON DELETE CASCADE).
+    fun confirmDeleteSessionName(entity: SessionNameEntity) {
+        viewModelScope.launch {
+            sessionDao.deleteSessionsByName(entity.name)
+            sessionNameDao.deleteById(entity.id)
+            if (_currentName.value.trim() == entity.name) {
+                _currentName.value = ""
+                preferencesManager.currentName = ""
+            }
+            _deleteNameImpact.value = null
         }
     }
 
