@@ -30,6 +30,7 @@ fun TickSettingsDialog(
     onUserInteraction: () -> Unit = {}
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var localAccents by remember { mutableStateOf(tickAccents) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -56,39 +57,39 @@ fun TickSettingsDialog(
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
 
-                val sortedAccents = tickAccents.sortedWith(compareBy({ it.intervalSeconds }, { it.startOffsetSeconds }))
-                val usedPairs = tickAccents.map { it.intervalSeconds to it.startOffsetSeconds }.toSet()
+                val sortedAccents = localAccents.sortedWith(compareBy({ it.intervalSeconds }, { it.startOffsetSeconds }))
+                val usedPairs = localAccents.map { it.intervalSeconds to it.startOffsetSeconds }.toSet()
 
                 sortedAccents.forEachIndexed { displayIndex, accent ->
-                    val originalIndex = tickAccents.indexOf(accent)
+                    val originalIndex = localAccents.indexOf(accent)
                     TickAccentRow(
                         ordinal = displayIndex + 1,
                         accent = accent,
                         usedPairs = usedPairs,
                         onIntervalChange = { newInterval ->
                             if (newInterval > 0 && originalIndex >= 0) {
-                                val updated = tickAccents.toMutableList()
+                                val updated = localAccents.toMutableList()
                                 updated[originalIndex] = updated[originalIndex].copy(intervalSeconds = newInterval)
-                                onAccentsChange(updated)
+                                localAccents = updated
                             }
                         },
                         onSoundChange = { newSound ->
                             if (originalIndex >= 0) {
-                                val updated = tickAccents.toMutableList()
+                                val updated = localAccents.toMutableList()
                                 updated[originalIndex] = updated[originalIndex].copy(soundType = newSound)
-                                onAccentsChange(updated)
+                                localAccents = updated
                             }
                         },
                         onOffsetChange = { newOffset ->
                             if (originalIndex >= 0) {
-                                val updated = tickAccents.toMutableList()
+                                val updated = localAccents.toMutableList()
                                 updated[originalIndex] = updated[originalIndex].copy(startOffsetSeconds = newOffset)
-                                onAccentsChange(updated)
+                                localAccents = updated
                             }
                         },
                         onPlay = { onPlaySound(accent.soundType) },
                         onDelete = {
-                            onAccentsChange(tickAccents.filter { it != accent })
+                            localAccents = localAccents.filter { it != accent }
                         }
                     )
                     if (displayIndex < sortedAccents.lastIndex) {
@@ -103,7 +104,7 @@ fun TickSettingsDialog(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TextButton(onClick = { onAccentsChange(DEFAULT_TICK_ACCENTS) }) {
+                    TextButton(onClick = { localAccents = DEFAULT_TICK_ACCENTS }) {
                         Text(stringResource(R.string.tick_reset_defaults))
                     }
                     TextButton(onClick = { showAddDialog = true }) {
@@ -157,17 +158,22 @@ fun TickSettingsDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(); onDismiss() }) {
+            TextButton(onClick = { onAccentsChange(localAccents); onSave(); onDismiss() }) {
                 Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
     )
 
     if (showAddDialog) {
         AddTickAccentDialog(
-            existingPairs = tickAccents.map { it.intervalSeconds to it.startOffsetSeconds }.toSet(),
+            existingPairs = localAccents.map { it.intervalSeconds to it.startOffsetSeconds }.toSet(),
             onConfirm = { accent ->
-                onAccentsChange(tickAccents + accent)
+                localAccents = localAccents + accent
                 showAddDialog = false
             },
             onDismiss = { showAddDialog = false }
