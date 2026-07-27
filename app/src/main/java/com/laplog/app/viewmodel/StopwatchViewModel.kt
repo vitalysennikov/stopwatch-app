@@ -538,7 +538,9 @@ class StopwatchViewModel(
                     SessionNameEntity(
                         name = name,
                         togglesJson = serializeCurrentToggles(),
-                        accentsJson = serializeTickAccents(_tickAccents.value)
+                        accentsJson = serializeTickAccents(
+                            findActivityPresetAccents(name) ?: _tickAccents.value
+                        )
                     )
                 )
         }
@@ -696,29 +698,51 @@ class StopwatchViewModel(
         viewModelScope.launch { loadNameTogglesBody(name) }
     }
 
+    private fun findActivityPresetAccents(name: String): List<TickAccent>? =
+        ACTIVITY_PRESETS.find { it.nameRu == name || it.nameEn == name || it.nameZh == name }?.accents
+
     private suspend fun loadNameTogglesBody(name: String) {
         val entity = sessionNameDao.getByName(name)
+        val defaultAccentsJson = serializeTickAccents(DEFAULT_TICK_ACCENTS)
+        val presetAccents = findActivityPresetAccents(name)
         if (entity?.togglesJson != null) {
             // session_names — единственный источник правды для этого имени;
             // legacy SharedPreferences-ключ здесь больше не читаем (см. task_accent_save_analysis.md).
             applyTogglesJson(entity.togglesJson)
-            _tickAccents.value = parseTickAccents(
-                entity.accentsJson ?: serializeTickAccents(DEFAULT_TICK_ACCENTS)
-            )
+            val storedAccentsJson = entity.accentsJson
+            if (presetAccents != null && (storedAccentsJson == null || storedAccentsJson == defaultAccentsJson)) {
+                // Запись создана/испорчена до того, как для этого имени-пресета
+                // применились акценты пресета (см. одноразовый seedActivityPresetsIfNeeded) —
+                // самовосстанавливаемся при каждой загрузке, а не только один раз.
+                _tickAccents.value = presetAccents
+                sessionNameDao.update(entity.copy(accentsJson = serializeTickAccents(presetAccents)))
+            } else {
+                _tickAccents.value = parseTickAccents(storedAccentsJson ?: defaultAccentsJson)
+            }
         } else {
             val toggles = preferencesManager.getNameToggles(name)
             if (toggles != null) {
                 applyLegacyToggles(toggles)
-                val accentsJson = preferencesManager.getNameAccents(name)
-                    ?: toggles.tickAccentsJson
-                    ?: serializeTickAccents(DEFAULT_TICK_ACCENTS)
+                val legacyAccentsJson = preferencesManager.getNameAccents(name) ?: toggles.tickAccentsJson
+                val accentsJson = when {
+                    legacyAccentsJson != null && legacyAccentsJson != defaultAccentsJson -> legacyAccentsJson
+                    presetAccents != null -> serializeTickAccents(presetAccents)
+                    legacyAccentsJson != null -> legacyAccentsJson
+                    else -> defaultAccentsJson
+                }
                 _tickAccents.value = parseTickAccents(accentsJson)
                 upsertSessionName(name, entity, serializeCurrentToggles(), accentsJson)
             } else {
                 val nameAccentsJson = preferencesManager.getNameAccents(name)
-                _tickAccents.value = nameAccentsJson?.let(::parseTickAccents) ?: DEFAULT_TICK_ACCENTS
-                // Не пишем DEFAULT как accentsJson — оставляем null, чтобы seed мог исправить
-                upsertSessionName(name, entity, serializeCurrentToggles(), nameAccentsJson)
+                val accentsJson = when {
+                    nameAccentsJson != null -> nameAccentsJson
+                    presetAccents != null -> serializeTickAccents(presetAccents)
+                    else -> null
+                }
+                _tickAccents.value = accentsJson?.let(::parseTickAccents) ?: DEFAULT_TICK_ACCENTS
+                // Если ни легаси, ни пресет не дали значения — не пишем DEFAULT,
+                // оставляем null, чтобы возможная будущая правка не считалась "уже явно заданной".
+                upsertSessionName(name, entity, serializeCurrentToggles(), accentsJson)
             }
         }
         if (StopwatchState.isRunning.value || StopwatchState.elapsedTime.value > 0) {
