@@ -34,6 +34,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 
 class StopwatchViewModel(
@@ -111,13 +113,23 @@ class StopwatchViewModel(
 
     private var timerJob: Job? = null
 
+    // Сериализует сохранение/загрузку настроек имени сессии: без этого
+    // "сохранить старое имя" и "загрузить+самовосстановить новое" гонялись
+    // за общим _tickAccents независимо друг от друга, и при быстром
+    // переключении сохранение могло захватить ещё не восстановленное
+    // (или уже подменённое следующей загрузкой) значение — акценты
+    // пресета иногда откатывались на DEFAULT (см. task_accent_save_analysis.md).
+    private val nameSwitchMutex = Mutex()
+
     init {
         restoreStopwatchState()
         val restoredName = _currentName.value.trim()
         viewModelScope.launch {
             try { migrateNameSettingsFromPrefsIfNeeded() } catch (e: Exception) { Log.e("StopwatchViewModel", "Migration failed", e) }
             try { seedActivityPresetsIfNeeded() } catch (e: Exception) { Log.e("StopwatchViewModel", "Seed failed", e) }
-            try { if (restoredName.isNotBlank()) loadNameTogglesBody(restoredName) } catch (e: Exception) { Log.e("StopwatchViewModel", "Load toggles failed", e) }
+            try {
+                if (restoredName.isNotBlank()) nameSwitchMutex.withLock { loadNameTogglesBody(restoredName) }
+            } catch (e: Exception) { Log.e("StopwatchViewModel", "Load toggles failed", e) }
         }
 
         viewModelScope.launch {
@@ -700,7 +712,7 @@ class StopwatchViewModel(
     }
 
     private fun loadNameToggles(name: String) {
-        viewModelScope.launch { loadNameTogglesBody(name) }
+        viewModelScope.launch { nameSwitchMutex.withLock { loadNameTogglesBody(name) } }
     }
 
     private fun findActivityPresetAccents(name: String): List<TickAccent>? =
@@ -766,10 +778,17 @@ class StopwatchViewModel(
     fun saveCurrentNameToggles() {
         val name = _currentName.value.trim()
         if (name.isBlank()) return
-        val togglesJson = serializeCurrentToggles()
-        val accentsJson = serializeTickAccents(_tickAccents.value)
         viewModelScope.launch {
-            upsertSessionName(name, sessionNameDao.getByName(name), togglesJson, accentsJson)
+            // Захватываем текущее состояние только после того, как захватим
+            // блокировку — если для этого же имени ещё выполняется загрузка
+            // (самовосстановление акцентов пресета), дожидаемся её завершения,
+            // иначе можно сохранить ещё не восстановленное значение поверх
+            // корректного и откатить акценты на DEFAULT.
+            nameSwitchMutex.withLock {
+                val togglesJson = serializeCurrentToggles()
+                val accentsJson = serializeTickAccents(_tickAccents.value)
+                upsertSessionName(name, sessionNameDao.getByName(name), togglesJson, accentsJson)
+            }
         }
     }
 
