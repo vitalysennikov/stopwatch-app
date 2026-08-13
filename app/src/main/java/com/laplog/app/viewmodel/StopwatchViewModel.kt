@@ -352,7 +352,7 @@ class StopwatchViewModel(
         if (json.isBlank()) return DEFAULT_TICK_ACCENTS
         return try {
             val result = mutableListOf<TickAccent>()
-            val pattern = Regex("""{"i":(\d+),"s":"([^"]+)"(?:,"o":(\d+))?}""")
+            val pattern = Regex("""\{"i":(\d+),"s":"([^"]+)"(?:,"o":(\d+))?\}""")
             for (match in pattern.findAll(json)) {
                 val interval = match.groupValues[1].toIntOrNull() ?: continue
                 val soundName = match.groupValues[2]
