@@ -23,6 +23,7 @@ import com.laplog.app.model.StopwatchCommandManager
 import com.laplog.app.model.TickAccent
 import com.laplog.app.model.TickSoundType
 import com.laplog.app.service.StopwatchService
+import com.laplog.app.util.AppLogger
 import com.laplog.app.util.TickSoundManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -331,6 +332,7 @@ class StopwatchViewModel(
     }
 
     fun updateTickAccents(accents: List<TickAccent>) {
+        AppLogger.d("AccentDebug", "updateTickAccents name='${_currentName.value.trim()}' new=${accentsSummary(accents)}")
         _tickAccents.value = accents
         val accentsJson = serializeTickAccents(accents)
         preferencesManager.tickAccentsJson = accentsJson
@@ -702,6 +704,7 @@ class StopwatchViewModel(
     }
 
     fun selectNameFromHistory(name: String) {
+        AppLogger.d("AccentDebug", "selectNameFromHistory prev='${_currentName.value.trim()}' new='$name'")
         saveCurrentNameToggles()
         _currentName.value = name
         preferencesManager.currentName = name
@@ -712,16 +715,34 @@ class StopwatchViewModel(
     }
 
     private fun loadNameToggles(name: String) {
-        viewModelScope.launch { nameSwitchMutex.withLock { loadNameTogglesBody(name) } }
+        AppLogger.d("AccentDebug", "loadNameToggles QUEUED name='$name'")
+        viewModelScope.launch {
+            nameSwitchMutex.withLock {
+                AppLogger.d("AccentDebug", "loadNameToggles LOCK_ACQUIRED name='$name'")
+                loadNameTogglesBody(name)
+            }
+        }
     }
 
     private fun findActivityPresetAccents(name: String): List<TickAccent>? =
         ACTIVITY_PRESETS.find { it.nameRu == name || it.nameEn == name || it.nameZh == name }?.accents
 
+    // Временная диагностика для task_accent_save_analysis.md (8-я итерация):
+    // короткая сводка списка акцентов для логов, чтобы не печатать полный JSON.
+    private fun accentsSummary(accents: List<TickAccent>): String =
+        "${accents.size}[" + accents.joinToString(",") { "${it.intervalSeconds}${it.soundType}" } + "]"
+
     private suspend fun loadNameTogglesBody(name: String) {
         val entity = sessionNameDao.getByName(name)
         val defaultAccentsJson = serializeTickAccents(DEFAULT_TICK_ACCENTS)
         val presetAccents = findActivityPresetAccents(name)
+        AppLogger.d(
+            "AccentDebug",
+            "loadNameTogglesBody ENTER name='$name' entityExists=${entity != null} " +
+                "togglesJsonNull=${entity?.togglesJson == null} storedAccentsJson=${entity?.accentsJson} " +
+                "presetAccents=${presetAccents?.let { accentsSummary(it) } ?: "none"} " +
+                "defaultJson=$defaultAccentsJson"
+        )
         if (entity?.togglesJson != null) {
             // session_names — единственный источник правды для этого имени;
             // legacy SharedPreferences-ключ здесь больше не читаем (см. task_accent_save_analysis.md).
@@ -731,10 +752,13 @@ class StopwatchViewModel(
                 // Запись создана/испорчена до того, как для этого имени-пресета
                 // применились акценты пресета (см. одноразовый seedActivityPresetsIfNeeded) —
                 // самовосстанавливаемся при каждой загрузке, а не только один раз.
+                AppLogger.d("AccentDebug", "loadNameTogglesBody name='$name' branch=HEAL_PRESET -> ${accentsSummary(presetAccents)}")
                 _tickAccents.value = presetAccents
                 sessionNameDao.update(entity.copy(accentsJson = serializeTickAccents(presetAccents)))
             } else {
-                _tickAccents.value = parseTickAccents(storedAccentsJson ?: defaultAccentsJson)
+                val result = parseTickAccents(storedAccentsJson ?: defaultAccentsJson)
+                AppLogger.d("AccentDebug", "loadNameTogglesBody name='$name' branch=USE_STORED -> ${accentsSummary(result)}")
+                _tickAccents.value = result
             }
         } else {
             val toggles = preferencesManager.getNameToggles(name)
@@ -747,6 +771,7 @@ class StopwatchViewModel(
                     legacyAccentsJson != null -> legacyAccentsJson
                     else -> defaultAccentsJson
                 }
+                AppLogger.d("AccentDebug", "loadNameTogglesBody name='$name' branch=LEGACY_TOGGLES accentsJson=$accentsJson")
                 _tickAccents.value = parseTickAccents(accentsJson)
                 upsertSessionName(name, entity, serializeCurrentToggles(), accentsJson)
             } else {
@@ -756,12 +781,14 @@ class StopwatchViewModel(
                     presetAccents != null -> serializeTickAccents(presetAccents)
                     else -> null
                 }
+                AppLogger.d("AccentDebug", "loadNameTogglesBody name='$name' branch=FRESH accentsJson=$accentsJson")
                 _tickAccents.value = accentsJson?.let(::parseTickAccents) ?: DEFAULT_TICK_ACCENTS
                 // Если ни легаси, ни пресет не дали значения — не пишем DEFAULT,
                 // оставляем null, чтобы возможная будущая правка не считалась "уже явно заданной".
                 upsertSessionName(name, entity, serializeCurrentToggles(), accentsJson)
             }
         }
+        AppLogger.d("AccentDebug", "loadNameTogglesBody EXIT name='$name' tickAccents=${accentsSummary(_tickAccents.value)}")
         if (StopwatchState.isRunning.value || StopwatchState.elapsedTime.value > 0) {
             updateServiceWakeLock()
         }
@@ -778,6 +805,7 @@ class StopwatchViewModel(
     fun saveCurrentNameToggles() {
         val name = _currentName.value.trim()
         if (name.isBlank()) return
+        AppLogger.d("AccentDebug", "saveCurrentNameToggles QUEUED name='$name' tickAccents(at-call)=${accentsSummary(_tickAccents.value)}")
         viewModelScope.launch {
             // Захватываем текущее состояние только после того, как захватим
             // блокировку — если для этого же имени ещё выполняется загрузка
@@ -787,6 +815,7 @@ class StopwatchViewModel(
             nameSwitchMutex.withLock {
                 val togglesJson = serializeCurrentToggles()
                 val accentsJson = serializeTickAccents(_tickAccents.value)
+                AppLogger.d("AccentDebug", "saveCurrentNameToggles WRITING name='$name' accents=${accentsSummary(_tickAccents.value)}")
                 upsertSessionName(name, sessionNameDao.getByName(name), togglesJson, accentsJson)
             }
         }
