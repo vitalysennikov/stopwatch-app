@@ -2,7 +2,7 @@ package com.laplog.app.model
 
 enum class TickSoundType {
     TICK, TOCK, BELL, DEEP, HIGH, WOOD, BEEP, PING,
-    SOFT, SNAP, CHIRP, DRUM, CHIME, BUZZ, CHIME2, GONG, BOWL, WHISTLE
+    SOFT, SNAP, CHIRP, DRUM, CHIME, BUZZ, CHIME2, GONG, BOWL, WHISTLE, DROPS
 }
 
 data class TickAccent(

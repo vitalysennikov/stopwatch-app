@@ -190,6 +190,7 @@
     <string name="notification_lap_info">Lap %1$d: %2$s</string>
     <string name="notification_running">⏱ %1$s — running</string>
     <string name="notification_paused">⏸ %1$s — paused</string>
+    <string name="notification_locked">%1$s — %2$s</string>
     <string name="notification_screen_always_on">Keeping screen awake</string>
 
     <!-- Permissions -->
@@ -240,6 +241,7 @@
     <string name="tick_sound_gong">Gong 2s</string>
     <string name="tick_sound_bowl">Bowl 2s</string>
     <string name="tick_sound_whistle">Whistle 2s</string>
+    <string name="tick_sound_drops">Drops</string>
     <string name="tick_preview">Preview</string>
     <string name="tick_start_offset">Start</string>
 

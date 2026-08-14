@@ -190,6 +190,7 @@
     <string name="notification_lap_info">圈数 %1$d: %2$s</string>
     <string name="notification_running">⏱ %1$s — 运行中</string>
     <string name="notification_paused">⏸ %1$s — 已暂停</string>
+    <string name="notification_locked">%1$s — %2$s</string>
     <string name="notification_screen_always_on">保持屏幕唤醒</string>
 
     <!-- Permissions -->
@@ -240,6 +241,7 @@
     <string name="tick_sound_gong">锣声 2s</string>
     <string name="tick_sound_bowl">钵声 2s</string>
     <string name="tick_sound_whistle">哨声 2s</string>
+    <string name="tick_sound_drops">水滴</string>
     <string name="tick_preview">预览</string>
     <string name="tick_start_offset">起始秒</string>
 

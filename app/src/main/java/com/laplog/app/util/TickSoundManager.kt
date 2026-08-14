@@ -25,6 +25,7 @@ class TickSoundManager {
         TickSoundType.GONG    -> generateGong()
         TickSoundType.BOWL    -> generateBowl()
         TickSoundType.WHISTLE -> generateWhistle()
+        TickSoundType.DROPS   -> generateDrops()
         else -> generateSine(type)
     }
 
@@ -197,6 +198,23 @@ class TickSoundManager {
                           else (1.0 - (secs - fadeStartSec) / (totalSec - fadeStartSec)).coerceAtLeast(0.0)
             val tremolo = 1.0 + 0.12 * sin(tremoloRate * i)
             val sample = (sin(omega * i) * tremolo * naturalEnv * fadeEnv * 0.60f * Short.MAX_VALUE).toInt()
+            samples[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+        return samples
+    }
+
+    // Water drop: short downward pitch sweep + fast decay ("plink")
+    private fun generateDrops(): ShortArray {
+        val durationMs = 120
+        val numSamples = sampleRate * durationMs / 1000
+        val samples = ShortArray(numSamples)
+        var phase = 0.0
+        for (i in 0 until numSamples) {
+            val t = i.toDouble() / numSamples
+            val freq = 1800.0 + (500.0 - 1800.0) * t  // sweep 1800→500 Hz
+            phase += 2.0 * PI * freq / sampleRate
+            val envelope = if (t < 0.03) t / 0.03 else exp(-9.0 * (t - 0.03))
+            val sample = (sin(phase) * envelope * 0.75f * Short.MAX_VALUE).toInt()
             samples[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
         }
         return samples

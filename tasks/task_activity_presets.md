@@ -22,7 +22,7 @@
 | дыхание полоза | Snake Breathing | 蛇式呼吸 | ~327 с | CHIME/60с, GONG/300с |
 | дыхание сокола | Falcon Breathing | 鹰式呼吸 | ~390 с | TICK/1с, TOCK/8с+7, BELL/8с, CHIME/60с, GONG/300с |
 | задержки на выдохе | Exhale Holds | 呼气保持 | ~363 с | TICK/180с+30, TOCK/180с+60, BELL/180с+90, CHIME/180с+120, CHIME2/180с+150, GONG/180с |
-| дерево жизни | Tree of Life | 生命之树 | ~711 с | WOOD/300с, SOFT/900с |
+| дерево жизни | Tree of Life | 生命之树 | ~711 с | DROPS/60с, SOFT/300с, GONG/900с |
 
 > ZH-переводы предварительные — уточнить при необходимости.
 
@@ -113,11 +113,17 @@ val ACTIVITY_PRESETS: List<ActivityPreset> = listOf(
         TickAccent(180, TickSoundType.GONG,   0),    // 3:00, 6:00, ...
     )),
     ActivityPreset("дерево жизни", "Tree of Life", "生命之树", listOf(
-        TickAccent(300, TickSoundType.WOOD, 0),   // 5:00, 10:00, ...
-        TickAccent(900, TickSoundType.SOFT, 0),   // 15:00, 30:00, ...
+        TickAccent(60,  TickSoundType.DROPS, 0),  // 1:00, 2:00, ...
+        TickAccent(300, TickSoundType.SOFT,  0),  // 5:00, 10:00, ...
+        TickAccent(900, TickSoundType.GONG,  0),  // 15:00, 30:00, ...
     )),
 )
 ```
+
+> Обновлено: изначально было `WOOD/300с, SOFT/900с`; заменено на
+> `DROPS/60с, SOFT/300с, GONG/900с` (добавлен новый звук «Капли» —
+> `TickSoundType.DROPS`, короткий нисходящий свип 1800→500 Гц, ~120 мс,
+> реализован в `TickSoundManager.generateDrops()`).
 
 ---
 

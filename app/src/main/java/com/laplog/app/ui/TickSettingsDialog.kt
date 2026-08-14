@@ -383,5 +383,6 @@ private fun soundLabel(type: TickSoundType): String = stringResource(
         TickSoundType.GONG     -> R.string.tick_sound_gong
         TickSoundType.BOWL     -> R.string.tick_sound_bowl
         TickSoundType.WHISTLE  -> R.string.tick_sound_whistle
+        TickSoundType.DROPS    -> R.string.tick_sound_drops
     }
 )

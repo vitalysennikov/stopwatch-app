@@ -35,7 +35,8 @@ val ACTIVITY_PRESETS: List<ActivityPreset> = listOf(
         TickAccent(180, TickSoundType.GONG,   0),
     )),
     ActivityPreset("дерево жизни", "Tree of Life", "生命之树", listOf(
-        TickAccent(300, TickSoundType.WOOD, 0),
-        TickAccent(900, TickSoundType.SOFT, 0),
+        TickAccent(60, TickSoundType.DROPS, 0),
+        TickAccent(300, TickSoundType.SOFT, 0),
+        TickAccent(900, TickSoundType.GONG, 0),
     )),
 )

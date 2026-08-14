@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -54,6 +56,8 @@ fun StopwatchScreen(
     isVisible: Boolean = true
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val translationManager = remember { TranslationManager(sessionDao) }
     val viewModel: StopwatchViewModel = viewModel(
         factory = StopwatchViewModelFactory(context, preferencesManager, sessionDao, sessionNameDao, translationManager)
@@ -245,6 +249,8 @@ fun StopwatchScreen(
                                 onClick = {
                                     viewModel.selectNameFromHistory(name)
                                     expandedNameDropdown = false
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
                                 }
                             )
                         }

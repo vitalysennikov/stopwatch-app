@@ -494,8 +494,8 @@ class StopwatchService : Service() {
         val activityName = StopwatchState.currentName.value.trim()
             .ifEmpty { getString(R.string.stopwatch) }
         val notificationText = if (isScreenLocked) {
-            // Screen is locked - show current time
-            timeString
+            // Screen is locked - show activity name with current time
+            getString(R.string.notification_locked, activityName, timeString)
         } else {
             // Screen is unlocked - show static text with activity name
             if (isRunning) {
